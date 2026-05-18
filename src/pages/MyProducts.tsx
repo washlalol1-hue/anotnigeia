@@ -1,7 +1,7 @@
 import { useState } from 'react'
 
 function MyProducts() {
-  const [showSample] = useState(false)
+  const [showSample, setShowSample] = useState(false)
 
   return (
     <div className="min-h-screen bg-purple-brand">
@@ -11,7 +11,12 @@ function MyProducts() {
           {/* Header */}
           <div className="flex justify-between items-center p-4 border-b border-gray-100">
             <h2 className="text-sm font-bold text-navy">პროდუქტის დეტალები</h2>
-            <h2 className="text-sm font-bold text-purple-brand">ჩემი პროდუქტი</h2>
+            <button
+              onClick={() => setShowSample((prev) => !prev)}
+              className="text-sm font-bold text-purple-brand hover:opacity-80 transition-opacity"
+            >
+              {showSample ? 'დამალვა' : 'ჩემი პროდუქტი'}
+            </button>
           </div>
 
           {/* Content */}

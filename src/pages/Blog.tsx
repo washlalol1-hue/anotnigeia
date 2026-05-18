@@ -77,9 +77,11 @@ function Blog() {
       </p>
 
       {/* Floating + Button */}
-      <button className="fixed bottom-24 right-4 w-14 h-14 bg-purple-brand rounded-full shadow-xl flex items-center justify-center text-white text-2xl hover:scale-110 active:scale-90 transition-transform z-40">
-        <i className="ri-add-line"></i>
-      </button>
+      <div className="fixed bottom-24 left-1/2 -translate-x-1/2 w-full max-w-[450px] z-40 pointer-events-none">
+        <button className="absolute bottom-0 right-4 w-14 h-14 bg-purple-brand rounded-full shadow-xl flex items-center justify-center text-white text-2xl hover:scale-110 active:scale-90 transition-transform pointer-events-auto">
+          <i className="ri-add-line"></i>
+        </button>
+      </div>
 
       {/* Image Preview Overlay */}
       {previewImage && (

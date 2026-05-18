@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import Home from './pages/Home'
 import MyProducts from './pages/MyProducts'
 import Blog from './pages/Blog'
@@ -16,6 +16,7 @@ function App() {
           <Route path="/user/blog" element={<Blog />} />
           <Route path="/share/index" element={<Share />} />
           <Route path="/user/index" element={<Profile />} />
+          <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </div>
       <BottomNav />

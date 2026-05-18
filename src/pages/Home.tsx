@@ -1,16 +1,16 @@
 import { useState, useEffect, useCallback } from 'react'
 import { products } from '../data/products'
 
+const carouselImages = [
+  'https://picsum.photos/400/200?random=1',
+  'https://picsum.photos/400/200?random=2',
+  'https://picsum.photos/400/200?random=3',
+  'https://picsum.photos/400/200?random=4',
+]
+
 function Home() {
   const [showModal, setShowModal] = useState(false)
   const [carouselIndex, setCarouselIndex] = useState(0)
-
-  const carouselImages = [
-    'https://picsum.photos/400/200?random=1',
-    'https://picsum.photos/400/200?random=2',
-    'https://picsum.photos/400/200?random=3',
-    'https://picsum.photos/400/200?random=4',
-  ]
 
   useEffect(() => {
     const timer = setTimeout(() => setShowModal(true), 500)

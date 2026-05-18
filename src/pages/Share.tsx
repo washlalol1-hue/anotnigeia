@@ -7,11 +7,11 @@ function Share() {
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(inviteLink)
+      setShowCopyPopup(true)
+      setTimeout(() => setShowCopyPopup(false), 2000)
     } catch {
       // fallback: do nothing in demo
     }
-    setShowCopyPopup(true)
-    setTimeout(() => setShowCopyPopup(false), 2000)
   }
 
   const levels = [

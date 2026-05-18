@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 body {
-  font-family: 'Roboto', sans-serif;
+  font-family: 'Noto Sans Georgian', 'Roboto', sans-serif;
   margin: 0;
   padding: 0;
   background-color: #f5f5f5;
