@@ -255,6 +255,31 @@ export const useUserStore = create<UserState>()(
     }),
     {
       name: 'princess-user',
+      version: 2,
+      migrate: (persistedState: unknown) => {
+        const state = persistedState as Record<string, unknown>
+        // Migrate old yacht product names to miner names
+        if (state && Array.isArray(state.purchasedProducts)) {
+          const nameMap: Record<string, string> = {
+            'იახტა-1': 'Miner S1',
+            'იახტა-2': 'Miner S2',
+            'იახტა-3': 'Miner Pro',
+            'იახტა-4': 'Miner X1',
+            'იახტა-5': 'Miner X2',
+            'იახტა-6': 'Miner Ultra',
+            'იახტა-7': 'Miner Max',
+            'იახტა-8': 'Miner Titan',
+          }
+          state.purchasedProducts = (state.purchasedProducts as Array<Record<string, unknown>>).map((pp) => {
+            const product = pp.product as Record<string, unknown>
+            if (product && typeof product.name === 'string' && nameMap[product.name]) {
+              return { ...pp, product: { ...product, name: nameMap[product.name] } }
+            }
+            return pp
+          })
+        }
+        return state
+      },
     }
   )
 )

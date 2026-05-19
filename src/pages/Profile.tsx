@@ -111,7 +111,7 @@ function Profile() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800">
       {/* Top Gradient Section */}
       <div className="bg-gradient-to-br from-purple-brand to-indigo-700 pt-8 pb-16 px-4 rounded-b-3xl">
         {/* Avatar */}
@@ -147,38 +147,38 @@ function Profile() {
       </div>
 
       {/* Stats Row */}
-      <div className="mx-4 -mt-8 bg-white rounded-2xl shadow-lg p-4">
+      <div className="mx-4 -mt-8 bg-gray-800 rounded-2xl shadow-lg p-4 border border-gray-700">
         <div className="flex justify-around text-center">
           <div>
             <p className="text-xs text-gray-500">შევსება</p>
-            <p className="font-bold text-navy">₾{totalDeposits.toFixed(0)}</p>
+            <p className="font-bold text-white">₾{totalDeposits.toFixed(0)}</p>
           </div>
-          <div className="w-px bg-gray-200"></div>
+          <div className="w-px bg-gray-600"></div>
           <div>
-            <p className="text-xs text-gray-500">გატანა</p>
-            <p className="font-bold text-navy">₾{totalWithdrawals.toFixed(0)}</p>
+            <p className="text-xs text-gray-400">გატანა</p>
+            <p className="font-bold text-white">₾{totalWithdrawals.toFixed(0)}</p>
           </div>
-          <div className="w-px bg-gray-200"></div>
+          <div className="w-px bg-gray-600"></div>
           <div>
-            <p className="text-xs text-gray-500">პროდუქტები</p>
-            <p className="font-bold text-navy">{purchasedProducts.length}</p>
+            <p className="text-xs text-gray-400">მაინერები</p>
+            <p className="font-bold text-white">{purchasedProducts.length}</p>
           </div>
         </div>
       </div>
 
       {/* Menu Card */}
-      <div className="mx-4 mt-4 bg-white rounded-2xl shadow-md overflow-hidden">
+      <div className="mx-4 mt-4 bg-gray-800 rounded-2xl shadow-md overflow-hidden border border-gray-700">
         {menuItems.map((item, index) => (
           <button
             key={item.label}
             onClick={item.action}
-            className={`w-full flex items-center gap-3 px-4 py-3.5 hover:bg-gradient-to-r hover:from-purple-50 hover:to-violet-50 transition-colors ${
-              index < menuItems.length - 1 ? 'border-b border-gray-100' : ''
+            className={`w-full flex items-center gap-3 px-4 py-3.5 hover:bg-gray-700 transition-colors ${
+              index < menuItems.length - 1 ? 'border-b border-gray-700' : ''
             }`}
           >
             <i className={`${item.icon} text-purple-brand text-lg`}></i>
-            <span className="text-sm text-navy">{item.label}</span>
-            <i className="ri-arrow-right-s-line text-gray-300 ml-auto"></i>
+            <span className="text-sm text-gray-200">{item.label}</span>
+            <i className="ri-arrow-right-s-line text-gray-500 ml-auto"></i>
           </button>
         ))}
       </div>

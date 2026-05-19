@@ -41,7 +41,7 @@ function MyProducts() {
   }
 
   return (
-    <div className="min-h-screen bg-purple-brand">
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800">
       <div className="p-4">
         {/* Stats Header */}
         <div className="bg-white/10 backdrop-blur rounded-2xl p-4 mb-4">

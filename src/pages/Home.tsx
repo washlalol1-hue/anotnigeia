@@ -71,7 +71,7 @@ function Home() {
   ]
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800">
       {/* Top Banner */}
       <div className="bg-gradient-to-r from-purple-brand to-indigo-600 p-6 rounded-b-3xl">
         <h1 className="text-white text-2xl font-bold text-center">CryptoMine</h1>
@@ -120,7 +120,7 @@ function Home() {
             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-brand to-violet-soft flex items-center justify-center shadow-md">
               <i className={`${action.icon} text-white text-xl`}></i>
             </div>
-            <span className="text-xs text-gray-700 font-medium">{action.label}</span>
+            <span className="text-xs text-gray-300 font-medium">{action.label}</span>
           </button>
         ))}
       </div>
@@ -130,7 +130,7 @@ function Home() {
         {products.map((product) => (
           <div
             key={product.id}
-            className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+            className="bg-gray-800 rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow border border-gray-700"
           >
             <img
               src={product.image}
@@ -139,8 +139,8 @@ function Home() {
             />
             <div className="p-4">
               <div className="flex justify-between items-center mb-2">
-                <h3 className="font-bold text-navy text-lg">{product.name}</h3>
-                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                <h3 className="font-bold text-white text-lg">{product.name}</h3>
+                <span className="text-xs text-gray-400 bg-gray-700 px-2 py-0.5 rounded-full">
                   დღე: {product.days}
                 </span>
               </div>
@@ -151,7 +151,7 @@ function Home() {
                 </div>
                 <div>
                   <span className="text-gray-500 text-xs">ჯამური:</span>{' '}
-                  <span className="font-semibold text-navy">₾{product.totalIncome.toLocaleString()}</span>
+                  <span className="font-semibold text-white">₾{product.totalIncome.toLocaleString()}</span>
                 </div>
                 <div>
                   <span className="text-gray-500 text-xs">Hash:</span>{' '}
@@ -159,7 +159,7 @@ function Home() {
                 </div>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-lg font-bold text-navy">₾{product.price.toLocaleString()}</span>
+                <span className="text-lg font-bold text-white">₾{product.price.toLocaleString()}</span>
                 <button
                   onClick={() => setPurchaseModal(product)}
                   className="bg-gradient-to-r from-purple-brand to-violet-soft text-white px-5 py-2 rounded-full text-sm font-medium hover:shadow-lg hover:scale-105 active:scale-95 transition-all"
