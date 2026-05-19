@@ -150,7 +150,7 @@ export const useUserStore = create<UserState>()(
       },
 
       collectEarnings: () => {
-        const { purchasedProducts } = get()
+        const { purchasedProducts, referrals } = get()
         let totalNewEarnings = 0
 
         const updatedProducts = purchasedProducts.map((pp) => {
@@ -179,18 +179,44 @@ export const useUserStore = create<UserState>()(
         })
 
         if (totalNewEarnings > 0.01) {
-          const tx: Transaction = {
+          // Calculate referral bonus (simulate bonus from referrals' earnings)
+          let referralBonus = 0
+          if (referrals.length > 0) {
+            // Level 1: 25% of their earnings
+            const l1 = referrals.filter((r) => r.level === 1).length
+            const l2 = referrals.filter((r) => r.level === 2).length
+            const l3 = referrals.filter((r) => r.level === 3).length
+            referralBonus = (l1 * 0.25 + l2 * 0.02 + l3 * 0.01) * (totalNewEarnings * 0.3)
+          }
+
+          const transactions: Transaction[] = []
+          
+          const earningTx: Transaction = {
             id: generateId(),
             type: 'earning',
             amount: totalNewEarnings,
-            description: `პროდუქტების შემოსავალი +₾${totalNewEarnings.toFixed(2)}`,
+            description: `მაინერების შემოსავალი +₾${totalNewEarnings.toFixed(2)}`,
             createdAt: new Date().toISOString(),
             status: 'completed',
           }
+          transactions.push(earningTx)
+
+          if (referralBonus > 0.01) {
+            const refTx: Transaction = {
+              id: generateId(),
+              type: 'referral_bonus',
+              amount: referralBonus,
+              description: `რეფერალ ბონუსი +₾${referralBonus.toFixed(2)}`,
+              createdAt: new Date().toISOString(),
+              status: 'completed',
+            }
+            transactions.push(refTx)
+          }
+
           set((state) => ({
-            balance: state.balance + totalNewEarnings,
+            balance: state.balance + totalNewEarnings + referralBonus,
             purchasedProducts: updatedProducts,
-            transactions: [tx, ...state.transactions],
+            transactions: [...transactions, ...state.transactions],
           }))
         }
       },

@@ -144,14 +144,18 @@ function Home() {
                   დღე: {product.days}
                 </span>
               </div>
-              <div className="grid grid-cols-2 gap-2 text-sm mb-3">
+              <div className="grid grid-cols-3 gap-2 text-sm mb-3">
                 <div>
-                  <span className="text-gray-500">დღიური:</span>{' '}
+                  <span className="text-gray-500 text-xs">დღიური:</span>{' '}
                   <span className="font-semibold text-green-600">₾{product.dailyIncome}</span>
                 </div>
                 <div>
-                  <span className="text-gray-500">ჯამური:</span>{' '}
+                  <span className="text-gray-500 text-xs">ჯამური:</span>{' '}
                   <span className="font-semibold text-navy">₾{product.totalIncome.toLocaleString()}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500 text-xs">Hash:</span>{' '}
+                  <span className="font-semibold text-purple-brand">{product.hashRate}</span>
                 </div>
               </div>
               <div className="flex justify-between items-center">

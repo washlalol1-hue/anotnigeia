@@ -88,7 +88,7 @@ function MyProducts() {
         <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
           {/* Header */}
           <div className="flex justify-between items-center p-4 border-b border-gray-100">
-            <h2 className="text-sm font-bold text-navy">ჩემი პროდუქტები ({purchasedProducts.length})</h2>
+            <h2 className="text-sm font-bold text-navy">ჩემი მაინერები ({purchasedProducts.length})</h2>
           </div>
 
           {/* Content */}
@@ -97,7 +97,7 @@ function MyProducts() {
               /* Empty State */
               <div className="flex flex-col items-center justify-center py-16">
                 <i className="ri-shopping-bag-line text-5xl text-gray-300 mb-4"></i>
-                <p className="text-gray-400 text-base mb-2">პროდუქტები არ არის</p>
+                <p className="text-gray-400 text-base mb-2">მაინერები არ გაქვთ</p>
                 <p className="text-gray-300 text-sm">შეიძინეთ მაინერი მთავარ გვერდზე</p>
               </div>
             ) : (
