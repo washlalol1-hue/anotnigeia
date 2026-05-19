@@ -75,6 +75,81 @@ function Blog() {
         </div>
       </div>
 
+      {/* Top Referrers + Giveaway */}
+      <div className="mx-4 mb-4">
+        {/* Giveaway Banner */}
+        <div className="bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400 rounded-xl p-4 mb-3 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -mr-6 -mt-6"></div>
+          <div className="absolute bottom-0 left-0 w-14 h-14 bg-white/10 rounded-full -ml-4 -mb-4"></div>
+          <div className="relative flex items-center gap-3">
+            <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+              <i className="ri-gift-2-line text-white text-2xl"></i>
+            </div>
+            <div className="flex-1">
+              <p className="text-white font-bold text-sm">MEGA GIVEAWAY ₾10,000</p>
+              <p className="text-white/80 text-[10px] mt-0.5">ტოპ 3 რეფერერი იღებს პრიზს! მოიწვიე მეგობრები და მოიგე</p>
+            </div>
+            <div className="bg-white/20 rounded-lg px-2 py-1">
+              <p className="text-white text-[10px] font-medium">3 დღე</p>
+              <p className="text-white/70 text-[8px]">დარჩა</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Top 3 Referrers */}
+        <div className="bg-gray-800 border border-gray-700 rounded-xl p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <i className="ri-trophy-line text-yellow-400"></i>
+            <p className="text-white font-bold text-sm">ტოპ რეფერერები — თვის გამარჯვებულები</p>
+          </div>
+          <div className="space-y-2.5">
+            {/* 1st place */}
+            <div className="flex items-center gap-3 bg-gradient-to-r from-yellow-500/10 to-transparent rounded-lg p-2.5">
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center text-white font-bold text-xs shadow-lg">
+                1
+              </div>
+              <div className="flex-1">
+                <p className="text-white text-sm font-medium">59*****23</p>
+                <p className="text-gray-400 text-[10px]">47 მოწვეული • ₾12,350 ბონუსი</p>
+              </div>
+              <div className="text-right">
+                <p className="text-yellow-400 font-bold text-sm">₾5,000</p>
+                <p className="text-gray-500 text-[10px]">პრიზი</p>
+              </div>
+            </div>
+            {/* 2nd place */}
+            <div className="flex items-center gap-3 bg-gradient-to-r from-gray-400/10 to-transparent rounded-lg p-2.5">
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center text-white font-bold text-xs shadow-lg">
+                2
+              </div>
+              <div className="flex-1">
+                <p className="text-white text-sm font-medium">55*****91</p>
+                <p className="text-gray-400 text-[10px]">38 მოწვეული • ₾8,920 ბონუსი</p>
+              </div>
+              <div className="text-right">
+                <p className="text-gray-300 font-bold text-sm">₾3,000</p>
+                <p className="text-gray-500 text-[10px]">პრიზი</p>
+              </div>
+            </div>
+            {/* 3rd place */}
+            <div className="flex items-center gap-3 bg-gradient-to-r from-orange-500/10 to-transparent rounded-lg p-2.5">
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold text-xs shadow-lg">
+                3
+              </div>
+              <div className="flex-1">
+                <p className="text-white text-sm font-medium">57*****45</p>
+                <p className="text-gray-400 text-[10px]">29 მოწვეული • ₾6,180 ბონუსი</p>
+              </div>
+              <div className="text-right">
+                <p className="text-orange-400 font-bold text-sm">₾2,000</p>
+                <p className="text-gray-500 text-[10px]">პრიზი</p>
+              </div>
+            </div>
+          </div>
+          <p className="text-gray-500 text-[10px] text-center mt-3">მოიწვიე 10+ ადამიანი და მოხვდი ტოპ სიაში!</p>
+        </div>
+      </div>
+
       {/* Feed Cards */}
       <div className="px-4 space-y-4 pb-4">
         {posts.map((post) => (
