@@ -2,7 +2,7 @@ import { NavLink } from 'react-router-dom'
 
 const navItems = [
   { to: '/', icon: 'ri-home-line', label: '\u10DB\u10D7\u10D0\u10D5\u10D0\u10E0\u10D8' },
-  { to: '/device/index', icon: 'ri-shopping-bag-line', label: '\u10E9\u10D4\u10DB\u10D8 \u10DE\u10E0\u10DD\u10D3\u10E3\u10E5\u10E2\u10D4\u10D1\u10D8' },
+  { to: '/device/index', icon: 'ri-cpu-line', label: '\u10DB\u10D0\u10D8\u10DC\u10D4\u10E0\u10D4\u10D1\u10D8' },
   { to: '/user/blog', icon: 'ri-article-line', label: '\u10D1\u10DA\u10DD\u10D2\u10D8' },
   { to: '/share/index', icon: 'ri-megaphone-line', label: '\u10D2\u10D0\u10D6\u10D8\u10D0\u10E0\u10D4\u10D1\u10D0' },
   { to: '/user/index', icon: 'ri-user-line', label: '\u10E9\u10D4\u10DB\u10D8' },

@@ -10,7 +10,7 @@ function Share() {
   const { showToast } = useToast()
 
   const inviteCode = user?.inviteCode || 'N/A'
-  const inviteLink = `https://princess-app.com/login/register?inviteCode=${inviteCode}`
+  const inviteLink = `https://cryptomine-app.com/register?inviteCode=${inviteCode}`
 
   // Calculate team members from registered users who used this user's invite code
   const directReferrals = users.filter((u) => u.referredBy === user?.id)

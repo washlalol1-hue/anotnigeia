@@ -98,7 +98,7 @@ function MyProducts() {
               <div className="flex flex-col items-center justify-center py-16">
                 <i className="ri-shopping-bag-line text-5xl text-gray-300 mb-4"></i>
                 <p className="text-gray-400 text-base mb-2">პროდუქტები არ არის</p>
-                <p className="text-gray-300 text-sm">შეიძინეთ იახტა მთავარ გვერდზე</p>
+                <p className="text-gray-300 text-sm">შეიძინეთ მაინერი მთავარ გვერდზე</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -110,7 +110,7 @@ function MyProducts() {
                   >
                     <div className="flex items-center gap-3 mb-3">
                       <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-brand to-violet-soft flex items-center justify-center">
-                        <i className="ri-ship-line text-white text-xl"></i>
+                        <i className="ri-cpu-line text-white text-xl"></i>
                       </div>
                       <div className="flex-1">
                         <h3 className="font-bold text-navy">{pp.product.name}</h3>
@@ -166,7 +166,7 @@ function MyProducts() {
                   >
                     <div className="flex items-center gap-3 mb-2">
                       <div className="w-10 h-10 rounded-lg bg-gray-300 flex items-center justify-center">
-                        <i className="ri-ship-line text-white text-lg"></i>
+                        <i className="ri-cpu-line text-white text-lg"></i>
                       </div>
                       <div>
                         <h3 className="font-bold text-gray-500">{pp.product.name}</h3>

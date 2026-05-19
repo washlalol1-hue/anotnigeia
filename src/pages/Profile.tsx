@@ -342,10 +342,10 @@ function Profile() {
         <div className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4" onClick={() => setActiveModal(null)}>
           <div className="bg-white rounded-2xl p-6 w-full max-w-[360px]" onClick={(e) => e.stopPropagation()}>
             <div className="text-center">
-              <i className="ri-ship-line text-purple-brand text-4xl mb-3"></i>
-              <h3 className="text-xl font-bold text-navy mb-2">Princess Platform</h3>
+              <i className="ri-cpu-line text-purple-brand text-4xl mb-3"></i>
+              <h3 className="text-xl font-bold text-navy mb-2">CryptoMine Platform</h3>
               <p className="text-sm text-gray-500 leading-relaxed mb-4">
-                Princess არის ლუქსური იახტების ინვესტიციის პლატფორმა. შეიძინეთ ვირტუალური იახტები და მიიღეთ ყოველდღიური შემოსავალი.
+                CryptoMine არის კლაუდ მაინინგის პლატფორმა. შეიძინეთ ვირტუალური მაინერები და მიიღეთ ყოველდღიური შემოსავალი.
               </p>
               <p className="text-xs text-red-400">⚠️ ეს არის დემო ვერსია</p>
             </div>

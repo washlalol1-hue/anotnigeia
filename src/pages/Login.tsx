@@ -49,10 +49,10 @@ function Login() {
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="w-20 h-20 mx-auto bg-white/20 rounded-full flex items-center justify-center mb-4">
-            <i className="ri-ship-line text-white text-4xl"></i>
+            <i className="ri-cpu-line text-white text-4xl"></i>
           </div>
-          <h1 className="text-white text-3xl font-bold">Princess</h1>
-          <p className="text-white/60 text-sm mt-1">Luxury Yacht Platform</p>
+          <h1 className="text-white text-3xl font-bold">CryptoMine</h1>
+          <p className="text-white/60 text-sm mt-1">Cloud Mining Platform</p>
         </div>
 
         {/* Form Card */}

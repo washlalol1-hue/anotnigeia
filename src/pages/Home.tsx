@@ -66,7 +66,7 @@ function Home() {
   const quickActions = [
     { icon: 'ri-wallet-3-line', label: 'შევსება', action: () => navigate('/user/index') },
     { icon: 'ri-upload-2-line', label: 'გატანა', action: () => navigate('/user/index') },
-    { icon: 'ri-treasure-map-line', label: 'განძი', action: () => navigate('/device/index') },
+    { icon: 'ri-cpu-line', label: 'მაინერები', action: () => navigate('/device/index') },
     { icon: 'ri-customer-service-2-line', label: 'სერვისი', action: () => showToast('მალე დაემატება', 'info') },
   ]
 
@@ -74,8 +74,8 @@ function Home() {
     <div className="min-h-screen bg-gray-50">
       {/* Top Banner */}
       <div className="bg-gradient-to-r from-purple-brand to-indigo-600 p-6 rounded-b-3xl">
-        <h1 className="text-white text-2xl font-bold text-center">Princess</h1>
-        <p className="text-purple-200 text-xs text-center mt-1">Luxury Yacht Platform</p>
+        <h1 className="text-white text-2xl font-bold text-center">CryptoMine</h1>
+        <p className="text-purple-200 text-xs text-center mt-1">Cloud Mining Platform</p>
         {/* Balance Badge */}
         <div className="flex justify-center mt-3">
           <div className="bg-white/20 backdrop-blur rounded-full px-4 py-1.5 flex items-center gap-2">
