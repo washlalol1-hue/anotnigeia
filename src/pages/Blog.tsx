@@ -29,6 +29,8 @@ function Blog() {
     const reward = parseFloat((Math.random() * 0.5 + 0.2).toFixed(2))
 
     addPost(newComment, reward, maskedPhone)
+    // Add blog reward to user balance
+    useUserStore.getState().deposit(reward)
     showToast(`პოსტი გამოქვეყნდა! ჯილდო: ₾${reward}`, 'success')
     setNewComment('')
     setShowPostModal(false)
@@ -36,7 +38,7 @@ function Blog() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800">
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-purple-brand">
       {/* Header */}
       <div className="bg-gradient-to-r from-green-600 to-emerald-500 px-4 py-4 rounded-b-2xl">
         <div className="flex items-center justify-between">

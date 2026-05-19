@@ -61,6 +61,8 @@ export const useAuthStore = create<AuthState>()(
           const referrer = users.find((u) => u.inviteCode === referralCode)
           if (referrer) {
             referredBy = referrer.id
+          } else {
+            return { success: false, error: 'მოწვევის კოდი არასწორია' }
           }
         }
 
@@ -78,6 +80,7 @@ export const useAuthStore = create<AuthState>()(
           user: newUser,
           isAuthenticated: true,
         }))
+
         return { success: true }
       },
 

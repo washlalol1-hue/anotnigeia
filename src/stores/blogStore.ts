@@ -23,7 +23,7 @@ export const useBlogStore = create<BlogState>()(
           timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
           comment,
           reward,
-          image: `https://picsum.photos/400/200?random=${Date.now()}`,
+          image: `https://images.unsplash.com/photo-1639762681057-408e52192e55?w=400&h=200&fit=crop&t=${Date.now()}`,
         }
         set((state) => ({
           posts: [newPost, ...state.posts],

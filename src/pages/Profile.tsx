@@ -111,7 +111,7 @@ function Profile() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800">
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-purple-brand">
       {/* Top Gradient Section */}
       <div className="bg-gradient-to-br from-purple-brand to-indigo-700 pt-8 pb-16 px-4 rounded-b-3xl">
         {/* Avatar */}

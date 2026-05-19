@@ -20,7 +20,7 @@ function App() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
 
   return (
-    <div className="max-w-[450px] mx-auto min-h-screen relative bg-white">
+    <div className="max-w-[450px] mx-auto min-h-screen relative bg-gray-900">
       <div className="pb-20">
         <Routes>
           <Route

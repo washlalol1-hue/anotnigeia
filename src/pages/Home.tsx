@@ -71,7 +71,7 @@ function Home() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800">
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-purple-brand">
       {/* Top Banner */}
       <div className="bg-gradient-to-r from-purple-brand to-indigo-600 p-6 rounded-b-3xl">
         <h1 className="text-white text-2xl font-bold text-center">CryptoMine</h1>

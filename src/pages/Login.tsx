@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useAuthStore } from '../stores/authStore'
+import { useUserStore } from '../stores/userStore'
 import { useToast } from '../components/Toast'
 
 function Login() {
@@ -28,6 +29,14 @@ function Login() {
       }
       const result = register(phone, password, inviteCode || undefined)
       if (result.success) {
+        // If registered with a referral code, add them as referral
+        if (inviteCode) {
+          const authState = useAuthStore.getState()
+          const newUser = authState.user
+          if (newUser && newUser.referredBy) {
+            useUserStore.getState().addReferral(phone, newUser.id, 1)
+          }
+        }
         showToast('რეგისტრაცია წარმატებულია!', 'success')
       } else {
         showToast(result.error || 'შეცდომა', 'error')
@@ -44,7 +53,7 @@ function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-brand via-indigo-700 to-violet-soft flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-purple-brand flex items-center justify-center p-4">
       <div className="w-full max-w-[380px]">
         {/* Logo */}
         <div className="text-center mb-8">
