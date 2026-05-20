@@ -1,50 +1,75 @@
-// Simulated API service layer with realistic delays
+// Real API service layer connecting to Express backend
 
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+const BASE_URL = '/api';
+
+function getToken(): string | null {
+  try {
+    const authData = localStorage.getItem('princess-auth');
+    if (authData) {
+      const parsed = JSON.parse(authData);
+      return parsed.state?.token || null;
+    }
+  } catch {}
+  return null;
+}
+
+async function request(endpoint: string, options: RequestInit = {}) {
+  const token = getToken();
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(options.headers as Record<string, string> || {}),
+  };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  const res = await fetch(`${BASE_URL}${endpoint}`, {
+    ...options,
+    headers,
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'შეცდომა');
+  return data;
+}
 
 export const api = {
-  // Auth endpoints
-  async login(_phone: string, _password: string): Promise<{ success: boolean; token?: string; error?: string }> {
-    await delay(800)
-    return { success: true, token: 'demo-jwt-token-' + Date.now() }
-  },
+  // Auth
+  login: (phone: string, password: string) =>
+    request('/auth/login', { method: 'POST', body: JSON.stringify({ phone, password }) }),
 
-  async register(_phone: string, _password: string, _inviteCode?: string): Promise<{ success: boolean; error?: string }> {
-    await delay(1000)
-    return { success: true }
-  },
+  register: (phone: string, password: string, inviteCode?: string) =>
+    request('/auth/register', { method: 'POST', body: JSON.stringify({ phone, password, inviteCode }) }),
 
-  // Payment endpoints
-  async processDeposit(_amount: number, _method: string): Promise<{ success: boolean; transactionId?: string }> {
-    await delay(1500)
-    return { success: true, transactionId: 'TXN-' + Date.now() }
-  },
+  // User
+  getProfile: () => request('/user/profile'),
+  setWithdrawalAccount: (account: string) =>
+    request('/user/set-account', { method: 'POST', body: JSON.stringify({ account }) }),
 
-  async processWithdrawal(_amount: number, _account: string): Promise<{ success: boolean; estimatedTime?: string }> {
-    await delay(2000)
-    return { success: true, estimatedTime: '5-30 წუთი' }
-  },
+  // Financial
+  deposit: (amount: number) =>
+    request('/deposit', { method: 'POST', body: JSON.stringify({ amount }) }),
 
-  // Product endpoints
-  async purchaseProduct(_productId: number): Promise<{ success: boolean; orderId?: string }> {
-    await delay(1200)
-    return { success: true, orderId: 'ORD-' + Date.now() }
-  },
+  withdraw: (amount: number) =>
+    request('/withdraw', { method: 'POST', body: JSON.stringify({ amount }) }),
 
-  async collectEarnings(): Promise<{ success: boolean; amount?: number }> {
-    await delay(500)
-    return { success: true }
-  },
+  getTransactions: () => request('/transactions'),
 
-  // Blog endpoints
-  async submitPost(_comment: string, _image?: string): Promise<{ success: boolean }> {
-    await delay(1000)
-    return { success: true }
-  },
+  // Products
+  getProducts: () => request('/products'),
+  purchaseProduct: (productId: number) =>
+    request('/purchase', { method: 'POST', body: JSON.stringify({ productId }) }),
 
-  // Referral endpoints
-  async getReferralStats(): Promise<{ team: number; totalRewards: number }> {
-    await delay(600)
-    return { team: 1, totalRewards: 0 }
-  },
-}
+  getMyProducts: () => request('/my-products'),
+  collectEarnings: () =>
+    request('/collect-earnings', { method: 'POST' }),
+
+  // Referrals
+  getReferrals: () => request('/referrals'),
+
+  // Blog
+  getBlogPosts: () => request('/blog'),
+  createBlogPost: (comment: string) =>
+    request('/blog', { method: 'POST', body: JSON.stringify({ comment }) }),
+
+  // Stats
+  getStats: () => request('/stats'),
+};

@@ -13,10 +13,12 @@ export interface User {
 interface AuthState {
   user: User | null
   isAuthenticated: boolean
+  token: string | null
   users: User[] // simulated DB of all registered users
   login: (phone: string, password: string) => { success: boolean; error?: string }
   register: (phone: string, password: string, inviteCode?: string) => { success: boolean; error?: string }
   logout: () => void
+  setToken: (token: string) => void
 }
 
 function generateId(): string {
@@ -32,6 +34,7 @@ export const useAuthStore = create<AuthState>()(
     (set, get) => ({
       user: null,
       isAuthenticated: false,
+      token: null,
       users: [],
 
       login: (phone, password) => {
@@ -85,7 +88,11 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout: () => {
-        set({ user: null, isAuthenticated: false })
+        set({ user: null, isAuthenticated: false, token: null })
+      },
+
+      setToken: (token) => {
+        set({ token })
       },
     }),
     {
