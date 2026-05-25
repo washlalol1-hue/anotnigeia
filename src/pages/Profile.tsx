@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
 import { useUserStore, Transaction } from '../stores/userStore'
@@ -24,9 +24,18 @@ function Profile() {
     deposit,
     withdraw,
     setWithdrawalAccount,
+    fetchProfile,
+    fetchTransactions,
+    fetchMyProducts,
   } = useUserStore()
   const { showToast } = useToast()
   const navigate = useNavigate()
+
+  useEffect(() => {
+    fetchProfile()
+    fetchTransactions()
+    fetchMyProducts()
+  }, [])
 
   const handleDeposit = async () => {
     const val = parseFloat(amount)
@@ -35,12 +44,16 @@ function Profile() {
       return
     }
     setProcessing(true)
-    await new Promise((r) => setTimeout(r, 1500))
-    deposit(val)
-    showToast(`₾${val} წარმატებით შეივსო!`, 'success')
-    setAmount('')
+    const result = await deposit(val)
+    if (result.success) {
+      showToast(`₾${val} წარმატებით შეივსო!`, 'success')
+      setAmount('')
+      setActiveModal(null)
+      fetchTransactions()
+    } else {
+      showToast(result.error || 'შეცდომა', 'error')
+    }
     setProcessing(false)
-    setActiveModal(null)
   }
 
   const handleWithdraw = async () => {
@@ -50,30 +63,36 @@ function Profile() {
       return
     }
     setProcessing(true)
-    await new Promise((r) => setTimeout(r, 2000))
-    const result = withdraw(val)
+    const result = await withdraw(val)
     if (result.success) {
       showToast(`₾${val} გატანა მუშავდება (5-30 წუთი)`, 'success')
       setAmount('')
       setActiveModal(null)
+      fetchTransactions()
+      fetchProfile()
     } else {
       showToast(result.error || 'შეცდომა', 'error')
     }
     setProcessing(false)
   }
 
-  const handleSetAccount = () => {
+  const handleSetAccount = async () => {
     if (accountInput.length < 5) {
       showToast('გთხოვთ შეიყვანოთ ვალიდური ანგარიში', 'error')
       return
     }
-    setWithdrawalAccount(accountInput)
-    showToast('ანგარიში შენახულია', 'success')
-    setActiveModal(null)
+    const result = await setWithdrawalAccount(accountInput)
+    if (result.success) {
+      showToast('ანგარიში შენახულია', 'success')
+      setActiveModal(null)
+    } else {
+      showToast(result.error || 'შეცდომა', 'error')
+    }
   }
 
   const handleLogout = () => {
     logout()
+    useUserStore.getState().reset()
     navigate('/login')
   }
 
@@ -84,7 +103,7 @@ function Profile() {
 
   const menuItems = [
     { icon: 'ri-information-line', label: 'ჩვენ შესახებ', action: () => setActiveModal('about') },
-    { icon: 'ri-file-list-3-line', label: 'ბალანსის ჩანაწერები', action: () => setActiveModal('history') },
+    { icon: 'ri-file-list-3-line', label: 'ბალანსის ჩანაწერები', action: () => { setHistoryFilter('all'); setActiveModal('history') } },
     { icon: 'ri-download-2-line', label: 'გამოტანის ჩანაწერები', action: () => { setHistoryFilter('withdrawal'); setActiveModal('history') } },
     { icon: 'ri-upload-2-line', label: 'შევსების ჩანაწერები', action: () => { setHistoryFilter('deposit'); setActiveModal('history') } },
     { icon: 'ri-bank-card-line', label: 'გატანის ანგარიში', action: () => { setAccountInput(withdrawalAccount || ''); setActiveModal('account') } },
@@ -245,7 +264,7 @@ function Profile() {
               </p>
             ) : (
               <p className="text-xs text-red-500 bg-red-50 px-3 py-2 rounded-lg mb-3">
-                ⚠️ ჯერ დააყენეთ გატანის ანგარიში მენიუდან
+                ჯერ დააყენეთ გატანის ანგარიში მენიუდან
               </p>
             )}
             <input
@@ -297,7 +316,7 @@ function Profile() {
                     <div className="flex-1 min-w-0">
                       <p className="text-xs text-navy truncate">{tx.description}</p>
                       <p className="text-[10px] text-gray-400">
-                        {new Date(tx.createdAt).toLocaleString('ka-GE')}
+                        {new Date(tx.created_at).toLocaleString('ka-GE')}
                       </p>
                     </div>
                     <div className="text-right">
@@ -347,7 +366,7 @@ function Profile() {
               <p className="text-sm text-gray-500 leading-relaxed mb-4">
                 CryptoMine არის კლაუდ მაინინგის პლატფორმა. შეიძინეთ ვირტუალური მაინერები და მიიღეთ ყოველდღიური შემოსავალი.
               </p>
-              <p className="text-xs text-red-400">⚠️ ეს არის დემო ვერსია</p>
+              <p className="text-xs text-red-400">ეს არის დემო ვერსია</p>
             </div>
           </div>
         </div>

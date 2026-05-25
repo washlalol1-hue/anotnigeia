@@ -1,37 +1,48 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
-import { blogPosts, BlogPost } from '../data/blogPosts'
+import { api } from '../services/api'
+
+export interface BlogPost {
+  id: number
+  username: string
+  comment: string
+  reward: number
+  withdraw_amount?: number
+  method?: string
+  image: string
+  created_at: string
+}
 
 interface BlogState {
   posts: BlogPost[]
-  addPost: (comment: string, reward: number, username: string) => void
+  loading: boolean
+  fetchPosts: () => Promise<void>
+  addPost: (comment: string) => Promise<{ success: boolean; reward?: number; error?: string }>
 }
 
-function generateId(): number {
-  return Date.now() + Math.floor(Math.random() * 1000)
-}
+export const useBlogStore = create<BlogState>()((set) => ({
+  posts: [],
+  loading: false,
 
-export const useBlogStore = create<BlogState>()(
-  persist(
-    (set) => ({
-      posts: blogPosts,
-
-      addPost: (comment, reward, username) => {
-        const newPost: BlogPost = {
-          id: generateId(),
-          username,
-          timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
-          comment,
-          reward,
-          image: `https://images.unsplash.com/photo-1639762681057-408e52192e55?w=400&h=200&fit=crop&t=${Date.now()}`,
-        }
-        set((state) => ({
-          posts: [newPost, ...state.posts],
-        }))
-      },
-    }),
-    {
-      name: 'princess-blog',
+  fetchPosts: async () => {
+    try {
+      set({ loading: true })
+      const data = await api.getBlogPosts()
+      set({ posts: data, loading: false })
+    } catch (err) {
+      console.error('Failed to fetch blog posts:', err)
+      set({ loading: false })
     }
-  )
-)
+  },
+
+  addPost: async (comment) => {
+    try {
+      const data = await api.createBlogPost(comment)
+      // Refresh posts after adding
+      const posts = await api.getBlogPosts()
+      set({ posts })
+      return { success: true, reward: data.reward }
+    } catch (err: any) {
+      return { success: false, error: err.message }
+    }
+  },
+}))
