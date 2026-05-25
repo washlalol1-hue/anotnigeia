@@ -1,28 +1,29 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuthStore } from '../stores/authStore'
 import { useUserStore } from '../stores/userStore'
 import { useToast } from '../components/Toast'
 
 function Share() {
   const [showCopyPopup, setShowCopyPopup] = useState(false)
-  const { user, users } = useAuthStore()
-  const { referrals, balance } = useUserStore()
+  const { user } = useAuthStore()
+  const { referrals, balance, inviteCode, fetchReferrals, fetchProfile } = useUserStore()
   const { showToast } = useToast()
 
-  const inviteCode = user?.inviteCode || 'N/A'
-  const inviteLink = `https://cryptomine-app.com/register?inviteCode=${inviteCode}`
+  useEffect(() => {
+    fetchReferrals()
+    fetchProfile()
+  }, [])
 
-  // Calculate real team members
-  const directReferrals = users.filter((u) => u.referredBy === user?.id)
-  const level2Referrals = users.filter((u) =>
-    directReferrals.some((dr) => dr.id === u.referredBy)
-  )
-  const level3Referrals = users.filter((u) =>
-    level2Referrals.some((lr) => lr.id === u.referredBy)
-  )
+  const displayInviteCode = inviteCode || user?.inviteCode || 'N/A'
+  const inviteLink = `https://cryptomine-app.com/register?inviteCode=${displayInviteCode}`
 
-  const totalTeam = directReferrals.length + level2Referrals.length + level3Referrals.length
-  const totalRewards = referrals.reduce((sum, r) => sum + r.totalEarnings, 0)
+  // Calculate team by levels
+  const level1 = referrals.filter((r) => r.level === 1)
+  const level2 = referrals.filter((r) => r.level === 2)
+  const level3 = referrals.filter((r) => r.level === 3)
+
+  const totalTeam = referrals.length
+  const totalRewards = referrals.reduce((sum, r) => sum + r.total_earnings, 0)
 
   // Commission rates
   const commissionRates = { 1: 0.25, 2: 0.02, 3: 0.01 }
@@ -45,10 +46,10 @@ function Share() {
 
   const handleCopyCode = async () => {
     try {
-      await navigator.clipboard.writeText(inviteCode)
-      showToast('კოდი დაკოპირებულია: ' + inviteCode, 'success')
+      await navigator.clipboard.writeText(displayInviteCode)
+      showToast('კოდი დაკოპირებულია: ' + displayInviteCode, 'success')
     } catch {
-      showToast('კოდი: ' + inviteCode, 'info')
+      showToast('კოდი: ' + displayInviteCode, 'info')
     }
   }
 
@@ -57,25 +58,25 @@ function Share() {
       level: 1,
       name: 'დონე 1 — პირდაპირი',
       percent: '25%',
-      people: directReferrals.length,
+      people: level1.length,
       description: 'მოწვეულის შემოსავლის 25%',
-      estimatedDaily: directReferrals.length * 2.5 * commissionRates[1],
+      estimatedDaily: level1.length * 2.5 * commissionRates[1],
     },
     {
       level: 2,
       name: 'დონე 2',
       percent: '2%',
-      people: level2Referrals.length,
+      people: level2.length,
       description: 'მეორე დონის შემოსავლის 2%',
-      estimatedDaily: level2Referrals.length * 2.5 * commissionRates[2],
+      estimatedDaily: level2.length * 2.5 * commissionRates[2],
     },
     {
       level: 3,
       name: 'დონე 3',
       percent: '1%',
-      people: level3Referrals.length,
+      people: level3.length,
       description: 'მესამე დონის შემოსავლის 1%',
-      estimatedDaily: level3Referrals.length * 2.5 * commissionRates[3],
+      estimatedDaily: level3.length * 2.5 * commissionRates[3],
     },
   ]
 
@@ -116,7 +117,7 @@ function Share() {
         </div>
         <div className="flex items-center gap-2 mb-3">
           <div className="flex-1 bg-gradient-to-r from-purple-50 to-violet-50 border-2 border-dashed border-purple-brand/30 rounded-lg px-4 py-3 text-center">
-            <span className="text-xl font-bold text-purple-brand tracking-widest">{inviteCode}</span>
+            <span className="text-xl font-bold text-purple-brand tracking-widest">{displayInviteCode}</span>
           </div>
           <button
             onClick={handleCopyCode}
@@ -139,7 +140,7 @@ function Share() {
         </div>
       </div>
 
-      {/* How It Works - Visual */}
+      {/* How It Works */}
       <div className="bg-white rounded-2xl p-4 mb-4 shadow-lg">
         <h3 className="font-bold text-navy text-sm mb-3">
           <i className="ri-flow-chart mr-1 text-purple-brand"></i>როგორ მუშაობს რეფერალი?
@@ -168,7 +169,6 @@ function Share() {
           </div>
         </div>
 
-        {/* Example calculation */}
         <div className="mt-3 pt-3 border-t border-gray-100 bg-green-50 rounded-lg p-3">
           <p className="text-[10px] text-green-700 font-medium mb-1">მაგალითი:</p>
           <p className="text-xs text-green-800">
@@ -206,7 +206,6 @@ function Share() {
               </div>
             </div>
 
-            {/* Estimated earnings */}
             {item.people > 0 && (
               <div className="mt-2 pt-2 border-t border-gray-100 flex justify-between items-center">
                 <span className="text-xs text-gray-400">სავარაუდო დღიური:</span>
@@ -214,11 +213,10 @@ function Share() {
               </div>
             )}
 
-            {/* Show referrals for level 1 */}
-            {item.level === 1 && directReferrals.length > 0 && (
+            {item.level === 1 && level1.length > 0 && (
               <div className="mt-2 pt-2 border-t border-gray-100">
                 <div className="flex flex-wrap gap-1">
-                  {directReferrals.map((r) => (
+                  {level1.map((r) => (
                     <span key={r.id} className="text-[10px] bg-purple-50 text-purple-brand px-2 py-0.5 rounded-full">
                       {r.phone.substring(0, 3)}***{r.phone.substring(r.phone.length - 2)}
                     </span>

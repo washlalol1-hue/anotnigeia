@@ -1,8 +1,19 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { products, Product } from '../data/products'
 import { useUserStore } from '../stores/userStore'
 import { useToast } from '../components/Toast'
+import { api } from '../services/api'
+
+interface Product {
+  id: number
+  name: string
+  days: number
+  daily_income: number
+  total_income: number
+  price: number
+  hash_rate: string
+  image: string
+}
 
 const carouselImages = [
   'https://picsum.photos/400/200?random=1',
@@ -16,12 +27,20 @@ function Home() {
   const [carouselIndex, setCarouselIndex] = useState(0)
   const [purchaseModal, setPurchaseModal] = useState<Product | null>(null)
   const [purchasing, setPurchasing] = useState(false)
+  const [products, setProducts] = useState<Product[]>([])
 
-  const { balance, purchaseProduct, getTotalDailyIncome } = useUserStore()
+  const { balance, purchaseProduct, getTotalDailyIncome, fetchProfile, fetchMyProducts } = useUserStore()
   const { showToast } = useToast()
   const navigate = useNavigate()
 
   const dailyIncome = getTotalDailyIncome()
+
+  // Fetch products and profile on mount
+  useEffect(() => {
+    fetchProfile()
+    fetchMyProducts()
+    api.getProducts().then(setProducts).catch(console.error)
+  }, [])
 
   useEffect(() => {
     const timer = setTimeout(() => setShowModal(true), 500)
@@ -51,12 +70,11 @@ function Home() {
   const handlePurchase = async () => {
     if (!purchaseModal) return
     setPurchasing(true)
-    // Simulate API call
-    await new Promise((r) => setTimeout(r, 1000))
-    const result = purchaseProduct(purchaseModal)
+    const result = await purchaseProduct(purchaseModal.id)
     if (result.success) {
       showToast(`${purchaseModal.name} წარმატებით შეძენილია!`, 'success')
       setPurchaseModal(null)
+      fetchMyProducts()
     } else {
       showToast(result.error || 'შეცდომა', 'error')
     }
@@ -147,15 +165,15 @@ function Home() {
               <div className="grid grid-cols-3 gap-2 text-sm mb-3">
                 <div>
                   <span className="text-gray-500 text-xs">დღიური:</span>{' '}
-                  <span className="font-semibold text-green-600">₾{product.dailyIncome}</span>
+                  <span className="font-semibold text-green-600">₾{product.daily_income}</span>
                 </div>
                 <div>
                   <span className="text-gray-500 text-xs">ჯამური:</span>{' '}
-                  <span className="font-semibold text-white">₾{product.totalIncome.toLocaleString()}</span>
+                  <span className="font-semibold text-white">₾{product.total_income.toLocaleString()}</span>
                 </div>
                 <div>
                   <span className="text-gray-500 text-xs">Hash:</span>{' '}
-                  <span className="font-semibold text-purple-brand">{product.hashRate}</span>
+                  <span className="font-semibold text-purple-brand">{product.hash_rate}</span>
                 </div>
               </div>
               <div className="flex justify-between items-center">
@@ -228,7 +246,7 @@ function Home() {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">დღიური შემოსავალი:</span>
-                <span className="font-bold text-green-600">₾{purchaseModal.dailyIncome}</span>
+                <span className="font-bold text-green-600">₾{purchaseModal.daily_income}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">ვადა:</span>
@@ -236,7 +254,7 @@ function Home() {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">ჯამური მოგება:</span>
-                <span className="font-bold text-green-600">₾{purchaseModal.totalIncome.toLocaleString()}</span>
+                <span className="font-bold text-green-600">₾{purchaseModal.total_income.toLocaleString()}</span>
               </div>
               <hr className="border-gray-200" />
               <div className="flex justify-between text-sm">
@@ -249,7 +267,7 @@ function Home() {
 
             {balance < purchaseModal.price && (
               <p className="text-red-500 text-xs text-center mb-3">
-                ⚠️ არასაკმარისი ბალანსი. გთხოვთ შეავსოთ ₾{(purchaseModal.price - balance).toFixed(2)}
+                არასაკმარისი ბალანსი. გთხოვთ შეავსოთ ₾{(purchaseModal.price - balance).toFixed(2)}
               </p>
             )}
 

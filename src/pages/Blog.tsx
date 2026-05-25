@@ -1,6 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useBlogStore } from '../stores/blogStore'
-import { useAuthStore } from '../stores/authStore'
 import { useUserStore } from '../stores/userStore'
 import { useToast } from '../components/Toast'
 
@@ -10,10 +9,14 @@ function Blog() {
   const [newComment, setNewComment] = useState('')
   const [posting, setPosting] = useState(false)
 
-  const { posts, addPost } = useBlogStore()
-  const { user } = useAuthStore()
-  const { balance } = useUserStore()
+  const { posts, fetchPosts, addPost } = useBlogStore()
+  const { balance, fetchProfile } = useUserStore()
   const { showToast } = useToast()
+
+  useEffect(() => {
+    fetchPosts()
+    fetchProfile()
+  }, [])
 
   const handlePost = async () => {
     if (!newComment.trim()) {
@@ -21,19 +24,15 @@ function Blog() {
       return
     }
     setPosting(true)
-    await new Promise((r) => setTimeout(r, 1000))
-
-    const maskedPhone = user
-      ? `${user.phone.substring(0, 2)}*****${user.phone.substring(user.phone.length - 2)}`
-      : 'Anonymous'
-    const reward = parseFloat((Math.random() * 0.5 + 0.2).toFixed(2))
-
-    addPost(newComment, reward, maskedPhone)
-    // Add blog reward to user balance
-    useUserStore.getState().deposit(reward)
-    showToast(`პოსტი გამოქვეყნდა! ჯილდო: ₾${reward}`, 'success')
-    setNewComment('')
-    setShowPostModal(false)
+    const result = await addPost(newComment)
+    if (result.success) {
+      showToast(`პოსტი გამოქვეყნდა! ჯილდო: ₾${result.reward}`, 'success')
+      setNewComment('')
+      setShowPostModal(false)
+      fetchProfile() // refresh balance
+    } else {
+      showToast(result.error || 'შეცდომა', 'error')
+    }
     setPosting(false)
   }
 
@@ -51,7 +50,7 @@ function Blog() {
           </span>
         </div>
         <p className="text-white/80 text-xs mt-2">
-          რეალური მომხმარებლების გატანები • გააზიარეთ და მიიღეთ ბონუსი
+          რეალური მომხმარებლების გატანები - გააზიარეთ და მიიღეთ ბონუსი
         </p>
       </div>
 
@@ -103,42 +102,33 @@ function Blog() {
             <p className="text-white font-bold text-sm">ტოპ რეფერერები — თვის გამარჯვებულები</p>
           </div>
           <div className="space-y-2.5">
-            {/* 1st place */}
             <div className="flex items-center gap-3 bg-gradient-to-r from-yellow-500/10 to-transparent rounded-lg p-2.5">
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center text-white font-bold text-xs shadow-lg">
-                1
-              </div>
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center text-white font-bold text-xs shadow-lg">1</div>
               <div className="flex-1">
                 <p className="text-white text-sm font-medium">59*****23</p>
-                <p className="text-gray-400 text-[10px]">47 მოწვეული • ₾12,350 ბონუსი</p>
+                <p className="text-gray-400 text-[10px]">47 მოწვეული - ₾12,350 ბონუსი</p>
               </div>
               <div className="text-right">
                 <p className="text-yellow-400 font-bold text-sm">₾5,000</p>
                 <p className="text-gray-500 text-[10px]">პრიზი</p>
               </div>
             </div>
-            {/* 2nd place */}
             <div className="flex items-center gap-3 bg-gradient-to-r from-gray-400/10 to-transparent rounded-lg p-2.5">
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center text-white font-bold text-xs shadow-lg">
-                2
-              </div>
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center text-white font-bold text-xs shadow-lg">2</div>
               <div className="flex-1">
                 <p className="text-white text-sm font-medium">55*****91</p>
-                <p className="text-gray-400 text-[10px]">38 მოწვეული • ₾8,920 ბონუსი</p>
+                <p className="text-gray-400 text-[10px]">38 მოწვეული - ₾8,920 ბონუსი</p>
               </div>
               <div className="text-right">
                 <p className="text-gray-300 font-bold text-sm">₾3,000</p>
                 <p className="text-gray-500 text-[10px]">პრიზი</p>
               </div>
             </div>
-            {/* 3rd place */}
             <div className="flex items-center gap-3 bg-gradient-to-r from-orange-500/10 to-transparent rounded-lg p-2.5">
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold text-xs shadow-lg">
-                3
-              </div>
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold text-xs shadow-lg">3</div>
               <div className="flex-1">
                 <p className="text-white text-sm font-medium">57*****45</p>
-                <p className="text-gray-400 text-[10px]">29 მოწვეული • ₾6,180 ბონუსი</p>
+                <p className="text-gray-400 text-[10px]">29 მოწვეული - ₾6,180 ბონუსი</p>
               </div>
               <div className="text-right">
                 <p className="text-orange-400 font-bold text-sm">₾2,000</p>
@@ -165,19 +155,18 @@ function Blog() {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-navy">{post.username}</p>
-                  <p className="text-[10px] text-gray-400">{post.timestamp}</p>
+                  <p className="text-[10px] text-gray-400">{post.created_at}</p>
                 </div>
               </div>
-              {/* Withdrawal badge */}
-              {'withdrawAmount' in post && post.withdrawAmount && (
+              {post.withdraw_amount && (
                 <div className="bg-green-50 border border-green-200 rounded-lg px-2 py-1">
                   <p className="text-[10px] text-green-600 font-medium">გატანილია</p>
-                  <p className="text-sm font-bold text-green-700">₾{post.withdrawAmount.toLocaleString()}</p>
+                  <p className="text-sm font-bold text-green-700">₾{post.withdraw_amount.toLocaleString()}</p>
                 </div>
               )}
             </div>
 
-            {/* Image - miner related */}
+            {/* Image */}
             <div
               className="h-[180px] cursor-pointer relative"
               onClick={() => setPreviewImage(post.image)}
@@ -204,7 +193,7 @@ function Blog() {
                 <i className="ri-gift-line text-purple-brand"></i>
                 <span className="text-xs text-gray-500">ჯილდო: ₾{post.reward}</span>
               </div>
-              {'method' in post && post.method && (
+              {post.method && (
                 <span className="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full">
                   {post.method}
                 </span>
@@ -214,7 +203,7 @@ function Blog() {
         ))}
       </div>
 
-      {/* Empty state if no posts */}
+      {/* Empty state */}
       {posts.length === 0 && (
         <div className="flex flex-col items-center justify-center py-16">
           <i className="ri-article-line text-white/30 text-5xl mb-4"></i>
