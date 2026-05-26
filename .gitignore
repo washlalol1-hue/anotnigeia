@@ -22,3 +22,6 @@ dist/
 
 # Backend database
 server/cryptomine.db
+server/cryptomine.db-shm
+server/cryptomine.db-wal
+server/.env

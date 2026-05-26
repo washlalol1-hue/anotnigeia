@@ -1,0 +1,46 @@
+{
+  "id": "FEAT-002",
+  "type": "feat",
+  "description": "Harden the Express backend for production: env-based config, security middleware, rate limiting, input validation, health check, graceful shutdown, error handling, and updated .gitignore",
+  "status": "in_progress",
+  "steps": [
+    "At the top of /projects/sandbox/anotnigeia/server/index.js, add require('dotenv').config() as the first line before other imports",
+    "Replace hardcoded JWT_SECRET with process.env.JWT_SECRET || 'cryptomine-secret-key-2026' (fallback for dev only, log a warning if env var is missing)",
+    "Replace hardcoded PORT with process.env.PORT || 3001",
+    "Replace app.use(cors()) with configurable CORS: app.use(cors({ origin: process.env.CORS_ORIGIN || '*', credentials: true }))",
+    "Add require('helmet') and app.use(helmet()) before other middleware",
+    "Add express-rate-limit: create a general limiter (100 requests per 15 minutes) and a strict auth limiter (10 requests per 15 minutes) for /api/auth/ routes",
+    "Add input validation: validate phone as digits-only 9+ chars in register, sanitize comment text (trim, max 500 chars) in blog post, validate account string in set-account",
+    "Add GET /health endpoint that returns { status: 'ok', timestamp: new Date().toISOString(), uptime: process.uptime() }",
+    "Add a global error handler middleware at the bottom (after all routes) that catches unhandled errors and returns 500 with { error: 'Internal server error' } in production or the error message in development",
+    "Add graceful shutdown handlers for SIGTERM and SIGINT that close the database connection and exit cleanly",
+    "Update /projects/sandbox/anotnigeia/.gitignore to add entries for server/cryptomine.db-shm, server/cryptomine.db-wal, server/.env, and ensure server/cryptomine.db is already covered",
+    "Add a Procfile at /projects/sandbox/anotnigeia/server/Procfile with: web: node index.js",
+    "Add a brief comment block near the DB initialization noting that SQLite requires persistent filesystem storage in production (not ephemeral containers)"
+  ],
+  "acceptance_criteria": [
+    "node --check /projects/sandbox/anotnigeia/server/index.js passes with no syntax errors",
+    "JWT_SECRET is read from process.env with a dev fallback",
+    "CORS origin is configurable via CORS_ORIGIN env var",
+    "helmet middleware is applied before routes",
+    "Rate limiting is applied globally and with stricter limits on /api/auth routes",
+    "Phone validation rejects non-digit characters",
+    "GET /health returns 200 with status info",
+    "Global error handler middleware exists after routes",
+    "SIGTERM/SIGINT handlers close the DB",
+    ".gitignore includes db-shm, db-wal, and .env files",
+    "Procfile exists with web process defined"
+  ],
+  "verification": [
+    "cd /projects/sandbox/anotnigeia/server && node --check index.js && echo 'SYNTAX OK'",
+    "grep -n 'process.env.JWT_SECRET' /projects/sandbox/anotnigeia/server/index.js",
+    "grep -n 'helmet' /projects/sandbox/anotnigeia/server/index.js",
+    "grep -n 'rateLimit\\|rate' /projects/sandbox/anotnigeia/server/index.js",
+    "grep -n '/health' /projects/sandbox/anotnigeia/server/index.js",
+    "grep -n 'SIGTERM\\|SIGINT' /projects/sandbox/anotnigeia/server/index.js",
+    "cat /projects/sandbox/anotnigeia/.gitignore",
+    "cat /projects/sandbox/anotnigeia/server/Procfile"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

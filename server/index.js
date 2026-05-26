@@ -1,17 +1,47 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const Database = require('better-sqlite3');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const path = require('path');
 
 const app = express();
-const PORT = 3001;
-const JWT_SECRET = 'cryptomine-secret-key-2026';
+const PORT = process.env.PORT || 3001;
+const JWT_SECRET = process.env.JWT_SECRET || 'cryptomine-secret-key-2026';
+if (!process.env.JWT_SECRET) {
+  console.warn('WARNING: JWT_SECRET not set in environment. Using insecure default. Set JWT_SECRET env var in production!');
+}
 
 // Middleware
-app.use(cors());
+app.use(helmet());
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || '*',
+  credentials: true
+}));
 app.use(express.json());
+
+// Rate limiting
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: { error: 'Too many requests, please try again later.' }
+});
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { error: 'Too many authentication attempts, please try again later.' }
+});
+
+app.use('/api/', generalLimiter);
+app.use('/api/auth/', authLimiter);
+
+// NOTE: SQLite requires persistent filesystem storage in production.
+// Do NOT deploy to ephemeral containers (e.g., Heroku free tier dynos) without
+// attaching persistent storage or migrating to PostgreSQL/MySQL.
 
 // Database
 const db = new Database(path.join(__dirname, 'cryptomine.db'));
@@ -154,11 +184,18 @@ function auth(req, res, next) {
   }
 }
 
+// ============ HEALTH CHECK ============
+
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString(), uptime: process.uptime() });
+});
+
 // ============ AUTH ROUTES ============
 
 app.post('/api/auth/register', (req, res) => {
   const { phone, password, inviteCode } = req.body;
   if (!phone || phone.length < 9) return res.status(400).json({ error: 'ტელეფონის ნომერი არასწორია' });
+  if (!/^\d{9,15}$/.test(phone)) return res.status(400).json({ error: 'ტელეფონის ნომერი მხოლოდ ციფრებს უნდა შეიცავდეს' });
   if (!password || password.length < 6) return res.status(400).json({ error: 'პაროლი უნდა იყოს მინიმუმ 6 სიმბოლო' });
 
   const existing = db.prepare('SELECT id FROM users WHERE phone = ?').get(phone);
@@ -210,8 +247,8 @@ app.get('/api/user/profile', auth, (req, res) => {
 
 app.post('/api/user/set-account', auth, (req, res) => {
   const { account } = req.body;
-  if (!account || account.length < 5) return res.status(400).json({ error: 'არასწორი ანგარიში' });
-  db.prepare('UPDATE users SET withdrawal_account = ? WHERE id = ?').run(account, req.userId);
+  if (!account || account.trim().length < 5) return res.status(400).json({ error: 'არასწორი ანგარიში' });
+  db.prepare('UPDATE users SET withdrawal_account = ? WHERE id = ?').run(account.trim(), req.userId);
   res.json({ success: true });
 });
 
@@ -352,8 +389,10 @@ app.get('/api/blog', (req, res) => {
 });
 
 app.post('/api/blog', auth, (req, res) => {
-  const { comment } = req.body;
+  let { comment } = req.body;
   if (!comment || comment.trim().length === 0) return res.status(400).json({ error: 'კომენტარი აუცილებელია' });
+
+  comment = comment.trim().substring(0, 500);
 
   const user = db.prepare('SELECT phone FROM users WHERE id = ?').get(req.userId);
   const maskedPhone = `${user.phone.substring(0, 2)}*****${user.phone.substring(user.phone.length - 2)}`;
@@ -382,7 +421,28 @@ app.get('/api/stats', (req, res) => {
   res.json({ totalWithdrawals: totalWithdrawals.total, todayWithdrawals: todayWithdrawals.total, userCount: userCount.count });
 });
 
+// ============ ERROR HANDLER ============
+
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+  res.status(500).json({
+    error: process.env.NODE_ENV === 'production' ? 'Internal server error' : err.message
+  });
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`CryptoMine API server running on http://localhost:${PORT}`);
+});
+
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received. Shutting down gracefully...');
+  db.close();
+  process.exit(0);
+});
+
+process.on('SIGINT', () => {
+  console.log('SIGINT received. Shutting down gracefully...');
+  db.close();
+  process.exit(0);
 });
