@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: anotnigeia-api
+    runtime: node
+    region: frankfurt
+    rootDir: server
+    buildCommand: npm install
+    startCommand: node index.js
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORS_ORIGIN
+        sync: false
+      - key: NODE_ENV
+        value: production
+
+  - type: web
+    name: anotnigeia-frontend
+    runtime: static
+    rootDir: .
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        sync: false

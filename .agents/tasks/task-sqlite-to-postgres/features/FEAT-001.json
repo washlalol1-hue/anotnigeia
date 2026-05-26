@@ -1,0 +1,36 @@
+{
+  "id": "FEAT-001",
+  "type": "feat",
+  "description": "Migrate backend from SQLite (better-sqlite3) to PostgreSQL (pg node-postgres) and update all related configuration for Neon/Render deployment.",
+  "status": "in_progress",
+  "steps": [
+    "Step 1: Update server/package.json - Remove 'better-sqlite3' from dependencies, add 'pg' (node-postgres). Keep all other dependencies (bcryptjs, cors, dotenv, express, express-rate-limit, helmet, jsonwebtoken) unchanged.",
+    "Step 2: Update server/.env.example - Replace SQLite-related comments with DATABASE_URL. Contents should be: PORT=3001, JWT_SECRET=your-secure-secret-key-here, CORS_ORIGIN=http://localhost:5173, NODE_ENV=production, DATABASE_URL=postgresql://user:password@host/dbname?sslmode=require",
+    "Step 3: Rewrite server/index.js to use pg Pool instead of better-sqlite3. Key changes: (a) Replace 'require(better-sqlite3)' with 'require(pg)' and create a Pool using DATABASE_URL env var (with ssl: { rejectUnauthorized: false } for Neon). (b) Convert all CREATE TABLE statements to PostgreSQL syntax: 'INTEGER PRIMARY KEY AUTOINCREMENT' becomes 'SERIAL PRIMARY KEY', 'datetime(now)' becomes 'NOW()', 'REAL' becomes 'DOUBLE PRECISION', 'TEXT DEFAULT (datetime(now))' becomes 'TIMESTAMP DEFAULT NOW()'. (c) Convert all SQL queries: ? placeholders become $1, $2, $3 etc. (d) Make ALL route handlers async - every handler that touches the DB must be 'async (req, res)' and use 'await pool.query(text, params)'. pool.query returns { rows, rowCount } so single-row results use 'rows[0]' instead of .get(), and multi-row results use 'rows' instead of .all(). (e) Replace db.transaction() with async transactions: const client = await pool.connect(); try { await client.query('BEGIN'); ... await client.query('COMMIT'); } catch { await client.query('ROLLBACK'); throw e; } finally { client.release(); }. (f) Update graceful shutdown to call pool.end() instead of db.close(). (g) Wrap table creation and seeding in an async initDb() function that runs on startup before app.listen(). (h) For the blog post INSERT, use 'RETURNING id' to get the auto-generated ID instead of result.lastInsertRowid. (i) For the stats route, change date(created_at) = date('now') to created_at::date = CURRENT_DATE. (j) Keep ALL existing routes, logic, middleware (helmet, rate-limit, cors, dotenv, auth JWT), validation, and error handling exactly the same - only change the database layer.",
+    "Step 4: Update .gitignore - Remove the SQLite database file entries (server/cryptomine.db, server/cryptomine.db-shm, server/cryptomine.db-wal) and add server/.env if not already there.",
+    "Step 5: Update src/services/api.ts - Change the BASE_URL from the hardcoded '/api' to use an environment variable: const BASE_URL = (import.meta.env.VITE_API_URL || '') + '/api'. This allows the frontend to point to a different backend host in production while still working with the Vite proxy in development.",
+    "Step 6: Add a render.yaml file in the project root for Render deployment. It should define: (a) A web service for the backend (server directory, build command 'npm install', start command 'node index.js', envVars: DATABASE_URL, JWT_SECRET, CORS_ORIGIN, NODE_ENV=production). (b) A static site for the frontend (root directory '.', build command 'npm install && npm run build', publish directory 'dist', env var VITE_API_URL pointing to the backend service URL).",
+    "Step 7: Remove SQLite database files from the working tree: server/cryptomine.db-shm, server/cryptomine.db-wal (the .db file is already gitignored). These are no longer needed.",
+    "Step 8: Run 'cd /projects/sandbox/anotnigeia/server && npm install' to install pg and remove better-sqlite3 from node_modules and package-lock.json."
+  ],
+  "acceptance_criteria": [
+    "server/package.json has 'pg' in dependencies and does NOT have 'better-sqlite3'",
+    "server/index.js uses 'require(pg)' and creates a Pool with DATABASE_URL",
+    "All route handlers in server/index.js are async functions",
+    "All SQL queries use $1, $2, $3 parameterized style (no ? placeholders)",
+    "Table creation uses PostgreSQL syntax (SERIAL PRIMARY KEY, TIMESTAMP DEFAULT NOW(), DOUBLE PRECISION)",
+    "Transactions use client checkout pattern (pool.connect, BEGIN, COMMIT/ROLLBACK, release)",
+    "server/.env.example includes DATABASE_URL",
+    "src/services/api.ts uses import.meta.env.VITE_API_URL for the base URL",
+    "render.yaml exists at project root with backend web service and frontend static site definitions",
+    "Graceful shutdown calls pool.end()",
+    "'npm install' in server/ completes without error"
+  ],
+  "verification": [
+    "Run 'cd /projects/sandbox/anotnigeia/server && npm install' and confirm it succeeds with exit code 0",
+    "Run 'node -e \"require('./server/index.js')\"' or check syntax with 'node --check /projects/sandbox/anotnigeia/server/index.js' to validate no syntax errors",
+    "Run 'cd /projects/sandbox/anotnigeia && npm run build' to confirm the frontend builds successfully with the updated api.ts"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

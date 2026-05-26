@@ -1,0 +1,7 @@
+{
+  "task_id": "task-sqlite-to-postgres",
+  "task_description": "Migrate the backend from SQLite (better-sqlite3) to PostgreSQL (pg/node-postgres) for free hosting on Neon/Render/Vercel. Update frontend API layer to support configurable backend URL. Add Render deployment configuration.",
+  "status": "in_progress",
+  "feature_order": ["FEAT-001"],
+  "blocked_reason": null
+}
