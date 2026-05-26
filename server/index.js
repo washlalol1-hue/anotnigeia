@@ -21,7 +21,7 @@ if (!process.env.JWT_SECRET) {
 // PostgreSQL connection pool
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
 // Middleware
@@ -182,6 +182,7 @@ async function initDb() {
           p
         );
       }
+      await client.query("SELECT setval('products_id_seq', (SELECT MAX(id) FROM products))");
       await client.query('COMMIT');
     } catch (e) {
       await client.query('ROLLBACK');
@@ -252,11 +253,21 @@ app.post('/api/auth/register', async (req, res) => {
     const hashedPassword = bcrypt.hashSync(password, 10);
     const myInviteCode = genInviteCode();
 
-    await pool.query('INSERT INTO users (id, phone, password, invite_code, referred_by) VALUES ($1, $2, $3, $4, $5)', [id, phone, hashedPassword, myInviteCode, referredBy]);
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      await client.query('INSERT INTO users (id, phone, password, invite_code, referred_by) VALUES ($1, $2, $3, $4, $5)', [id, phone, hashedPassword, myInviteCode, referredBy]);
 
-    // Add referral record
-    if (referredBy) {
-      await pool.query('INSERT INTO referrals (id, referrer_id, referred_id, phone, level) VALUES ($1, $2, $3, $4, 1)', [genId(), referredBy, id, phone]);
+      // Add referral record
+      if (referredBy) {
+        await client.query('INSERT INTO referrals (id, referrer_id, referred_id, phone, level) VALUES ($1, $2, $3, $4, 1)', [genId(), referredBy, id, phone]);
+      }
+      await client.query('COMMIT');
+    } catch (e) {
+      await client.query('ROLLBACK');
+      throw e;
+    } finally {
+      client.release();
     }
 
     const token = jwt.sign({ userId: id }, JWT_SECRET, { expiresIn: '30d' });
@@ -321,8 +332,18 @@ app.post('/api/deposit', auth, async (req, res) => {
   if (!amount || amount < 1) return res.status(400).json({ error: 'მინიმალური შევსება: ₾1' });
 
   try {
-    await pool.query('UPDATE users SET balance = balance + $1, total_deposits = total_deposits + $1 WHERE id = $2', [amount, req.userId]);
-    await pool.query('INSERT INTO transactions (id, user_id, type, amount, description, status) VALUES ($1, $2, $3, $4, $5, $6)', [genId(), req.userId, 'deposit', amount, `ბალანსის შევსება ₾${amount}`, 'completed']);
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      await client.query('UPDATE users SET balance = balance + $1, total_deposits = total_deposits + $1 WHERE id = $2', [amount, req.userId]);
+      await client.query('INSERT INTO transactions (id, user_id, type, amount, description, status) VALUES ($1, $2, $3, $4, $5, $6)', [genId(), req.userId, 'deposit', amount, `ბალანსის შევსება ₾${amount}`, 'completed']);
+      await client.query('COMMIT');
+    } catch (e) {
+      await client.query('ROLLBACK');
+      throw e;
+    } finally {
+      client.release();
+    }
 
     const { rows } = await pool.query('SELECT balance FROM users WHERE id = $1', [req.userId]);
     res.json({ success: true, balance: rows[0].balance });
@@ -342,8 +363,22 @@ app.post('/api/withdraw', auth, async (req, res) => {
     if (!amount || amount < 5) return res.status(400).json({ error: 'მინიმალური გატანა: ₾5' });
     if (amount > user.balance) return res.status(400).json({ error: 'არასაკმარისი ბალანსი' });
 
-    await pool.query('UPDATE users SET balance = balance - $1, total_withdrawals = total_withdrawals + $1 WHERE id = $2', [amount, req.userId]);
-    await pool.query('INSERT INTO transactions (id, user_id, type, amount, description, status) VALUES ($1, $2, $3, $4, $5, $6)', [genId(), req.userId, 'withdrawal', -amount, `თანხის გატანა ₾${amount} → ${user.withdrawal_account}`, 'pending']);
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      const { rowCount } = await client.query('UPDATE users SET balance = balance - $1, total_withdrawals = total_withdrawals + $1 WHERE id = $2 AND balance >= $1', [amount, req.userId]);
+      if (rowCount === 0) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ error: 'არასაკმარისი ბალანსი' });
+      }
+      await client.query('INSERT INTO transactions (id, user_id, type, amount, description, status) VALUES ($1, $2, $3, $4, $5, $6)', [genId(), req.userId, 'withdrawal', -amount, `თანხის გატანა ₾${amount} → ${user.withdrawal_account}`, 'pending']);
+      await client.query('COMMIT');
+    } catch (e) {
+      await client.query('ROLLBACK');
+      throw e;
+    } finally {
+      client.release();
+    }
 
     const { rows: updatedRows } = await pool.query('SELECT balance FROM users WHERE id = $1', [req.userId]);
     res.json({ success: true, balance: updatedRows[0].balance, estimatedTime: '5-30 წუთი' });
@@ -387,9 +422,19 @@ app.post('/api/purchase', auth, async (req, res) => {
     if (user.balance < product.price) return res.status(400).json({ error: 'არასაკმარისი ბალანსი. გთხოვთ შეავსოთ ბალანსი.' });
 
     const purchaseId = genId();
-    await pool.query('UPDATE users SET balance = balance - $1 WHERE id = $2', [product.price, req.userId]);
-    await pool.query('INSERT INTO purchased_products (id, user_id, product_id) VALUES ($1, $2, $3)', [purchaseId, req.userId, product.id]);
-    await pool.query('INSERT INTO transactions (id, user_id, type, amount, description, status) VALUES ($1, $2, $3, $4, $5, $6)', [genId(), req.userId, 'purchase', -product.price, `${product.name} შეძენა`, 'completed']);
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      await client.query('UPDATE users SET balance = balance - $1 WHERE id = $2', [product.price, req.userId]);
+      await client.query('INSERT INTO purchased_products (id, user_id, product_id) VALUES ($1, $2, $3)', [purchaseId, req.userId, product.id]);
+      await client.query('INSERT INTO transactions (id, user_id, type, amount, description, status) VALUES ($1, $2, $3, $4, $5, $6)', [genId(), req.userId, 'purchase', -product.price, `${product.name} შეძენა`, 'completed']);
+      await client.query('COMMIT');
+    } catch (e) {
+      await client.query('ROLLBACK');
+      throw e;
+    } finally {
+      client.release();
+    }
 
     const { rows: updatedRows } = await pool.query('SELECT balance FROM users WHERE id = $1', [req.userId]);
     res.json({ success: true, balance: updatedRows[0].balance, purchaseId });
@@ -517,17 +562,29 @@ app.post('/api/blog', auth, async (req, res) => {
     const maskedPhone = `${user.phone.substring(0, 2)}*****${user.phone.substring(user.phone.length - 2)}`;
     const reward = parseFloat((Math.random() * 0.5 + 0.2).toFixed(2));
 
-    const { rows: insertRows } = await pool.query(
-      'INSERT INTO blog_posts (user_id, username, comment, reward, image, created_at) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
-      [req.userId, maskedPhone, comment, reward, `https://images.unsplash.com/photo-1639762681057-408e52192e55?w=400&h=200&fit=crop&t=${Date.now()}`, new Date().toISOString().replace('T', ' ').substring(0, 19)]
-    );
+    const client = await pool.connect();
+    let postId;
+    try {
+      await client.query('BEGIN');
+      const { rows: insertRows } = await client.query(
+        'INSERT INTO blog_posts (user_id, username, comment, reward, image, created_at) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
+        [req.userId, maskedPhone, comment, reward, `https://images.unsplash.com/photo-1639762681057-408e52192e55?w=400&h=200&fit=crop&t=${Date.now()}`, new Date().toISOString().replace('T', ' ').substring(0, 19)]
+      );
+      postId = insertRows[0].id;
 
-    // Add reward to balance
-    await pool.query('UPDATE users SET balance = balance + $1 WHERE id = $2', [reward, req.userId]);
-    await pool.query('INSERT INTO transactions (id, user_id, type, amount, description, status) VALUES ($1, $2, $3, $4, $5, $6)', [genId(), req.userId, 'earning', reward, `ბლოგის ჯილდო +₾${reward}`, 'completed']);
+      // Add reward to balance
+      await client.query('UPDATE users SET balance = balance + $1 WHERE id = $2', [reward, req.userId]);
+      await client.query('INSERT INTO transactions (id, user_id, type, amount, description, status) VALUES ($1, $2, $3, $4, $5, $6)', [genId(), req.userId, 'earning', reward, `ბლოგის ჯილდო +₾${reward}`, 'completed']);
+      await client.query('COMMIT');
+    } catch (e) {
+      await client.query('ROLLBACK');
+      throw e;
+    } finally {
+      client.release();
+    }
 
     const { rows: updatedRows } = await pool.query('SELECT balance FROM users WHERE id = $1', [req.userId]);
-    res.json({ success: true, postId: insertRows[0].id, reward, balance: updatedRows[0].balance });
+    res.json({ success: true, postId, reward, balance: updatedRows[0].balance });
   } catch (err) {
     console.error('Blog post error:', err);
     res.status(500).json({ error: 'Internal server error' });
@@ -580,5 +637,6 @@ initDb().then(() => {
   });
 }).catch((err) => {
   console.error('Failed to initialize database:', err);
+  pool.end();
   process.exit(1);
 });
