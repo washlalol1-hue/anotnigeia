@@ -13,6 +13,10 @@ const PORT = process.env.PORT || 3001;
 const JWT_SECRET = process.env.JWT_SECRET || 'cryptomine-secret-key-2026';
 if (!process.env.JWT_SECRET) {
   console.warn('WARNING: JWT_SECRET not set in environment. Using insecure default. Set JWT_SECRET env var in production!');
+  if (process.env.NODE_ENV === 'production') {
+    console.error('FATAL: JWT_SECRET must be set in production');
+    process.exit(1);
+  }
 }
 
 // Middleware
@@ -21,9 +25,12 @@ app.use(cors({
   origin: process.env.CORS_ORIGIN || '*',
   credentials: true
 }));
-app.use(express.json());
+app.use(express.json({ limit: '10kb' }));
 
 // Rate limiting
+// NOTE: The default MemoryStore is suitable for single-process deployments only.
+// For horizontal scaling (multiple workers/instances), use a Redis-backed store
+// such as rate-limit-redis to share counters across processes.
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
@@ -225,6 +232,7 @@ app.post('/api/auth/register', (req, res) => {
 
 app.post('/api/auth/login', (req, res) => {
   const { phone, password } = req.body;
+  if (!phone || !/^\d{9,15}$/.test(phone)) return res.status(400).json({ error: 'ტელეფონის ნომერი არასწორია' });
   const user = db.prepare('SELECT * FROM users WHERE phone = ?').get(phone);
   if (!user || !bcrypt.compareSync(password, user.password)) {
     return res.status(401).json({ error: 'არასწორი ნომერი ან პაროლი' });
@@ -431,18 +439,22 @@ app.use((err, req, res, next) => {
 });
 
 // Start server
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`CryptoMine API server running on http://localhost:${PORT}`);
 });
 
 process.on('SIGTERM', () => {
   console.log('SIGTERM received. Shutting down gracefully...');
-  db.close();
-  process.exit(0);
+  server.close(() => {
+    db.close();
+    process.exit(0);
+  });
 });
 
 process.on('SIGINT', () => {
   console.log('SIGINT received. Shutting down gracefully...');
-  db.close();
-  process.exit(0);
+  server.close(() => {
+    db.close();
+    process.exit(0);
+  });
 });
