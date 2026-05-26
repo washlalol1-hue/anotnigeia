@@ -1,0 +1,25 @@
+{
+  "project_type": "Full-stack web app: React+Vite frontend, Express.js backend (currently SQLite, migrating to PostgreSQL)",
+  "language": "TypeScript (frontend), JavaScript (backend)",
+  "build_system": "npm for both frontend and backend; Vite for frontend bundling",
+  "test_framework": "No test framework currently configured",
+  "build_command": "cd /projects/sandbox/anotnigeia && npm run build (frontend); cd /projects/sandbox/anotnigeia/server && node index.js (backend)",
+  "test_command": "No tests exist. Verification is via successful server startup and frontend build.",
+  "verification_instructions": "1. Install frontend deps and run 'npm run build' to confirm frontend compiles. 2. Install server deps and run 'node index.js' briefly to confirm it starts without errors (needs DATABASE_URL set).",
+  "snapshot_or_generated_files": null,
+  "setup_instructions": "1. cd /projects/sandbox/anotnigeia && npm install. 2. cd server && npm install.",
+  "environment_constraints": "OPEN_INTERNET - can install packages freely. No Docker needed for verification.",
+  "contribution_requirements": "No CONTRIBUTING.md found. Standard practices apply.",
+  "key_patterns": "Backend: Express.js with middleware (helmet, cors, rate-limit), JWT auth, synchronous SQLite via better-sqlite3. Frontend: React with zustand stores, service layer in src/services/api.ts using relative '/api' path (relies on Vite proxy in dev). Vite config has proxy from /api to localhost:3001.",
+  "relevant_files": [
+    "server/index.js",
+    "server/package.json",
+    "server/.env.example",
+    "server/Procfile",
+    "src/services/api.ts",
+    "vite.config.ts",
+    "package.json",
+    ".gitignore"
+  ],
+  "directory_structure": "Root: React+Vite app (package.json, vite.config.ts, src/, index.html). server/: Express backend (index.js, package.json, Procfile). src/services/api.ts: API client. src/stores/: zustand stores for auth, user, blog."
+}
