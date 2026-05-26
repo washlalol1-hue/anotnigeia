@@ -1,6 +1,6 @@
 // Real API service layer connecting to Express backend
 
-const BASE_URL = '/api';
+const BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 function getToken(): string | null {
   try {
