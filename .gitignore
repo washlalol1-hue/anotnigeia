@@ -18,3 +18,7 @@ dist/
 *.njsproj
 *.sln
 *.sw?
+
+
+# Backend env
+server/.env

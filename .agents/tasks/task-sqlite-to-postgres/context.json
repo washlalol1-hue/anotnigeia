@@ -1,0 +1,25 @@
+{
+  "project_type": "Full-stack app: React/Vite frontend + Express.js backend with SQLite (better-sqlite3)",
+  "language": "TypeScript (frontend), JavaScript CommonJS (backend)",
+  "build_system": "npm for both frontend and backend. Frontend uses Vite. Backend is plain Node.js with no build step.",
+  "test_framework": "No test framework present",
+  "build_command": "cd /projects/sandbox/anotnigeia && npm run build (frontend only; backend has no build step)",
+  "test_command": "No tests configured",
+  "verification_instructions": "1. Install backend deps: cd server && npm install. 2. Run server: node server/index.js (should start without crash). 3. Frontend build: npm run build (should succeed).",
+  "snapshot_or_generated_files": null,
+  "setup_instructions": "cd /projects/sandbox/anotnigeia/server && npm install",
+  "environment_constraints": "Network is available for npm install. PostgreSQL connection is remote (Neon). No local DB needed.",
+  "contribution_requirements": "None documented",
+  "key_patterns": "Backend: synchronous better-sqlite3 with db.prepare().run/get/all(). All route handlers are synchronous. Uses CommonJS require. Frontend API layer in src/services/api.ts uses relative '/api' base URL with Vite proxy in dev. Auth via JWT Bearer token from localStorage (princess-auth key).",
+  "relevant_files": [
+    "server/index.js",
+    "server/package.json",
+    "server/.env.example",
+    "server/Procfile",
+    "src/services/api.ts",
+    "vite.config.ts",
+    "package.json",
+    ".gitignore"
+  ],
+  "directory_structure": "Root: React frontend (src/, vite.config.ts, package.json). server/: Express backend (index.js, package.json, .env.example, Procfile). src/services/api.ts: API client layer. src/stores/: Zustand stores (authStore, userStore, blogStore)."
+}
