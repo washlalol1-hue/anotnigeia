@@ -2,7 +2,7 @@
   "id": "FEAT-001",
   "type": "feat",
   "description": "Migrate backend from SQLite (better-sqlite3) to PostgreSQL (pg node-postgres) and update all related configuration for Neon/Render deployment.",
-  "status": "in_progress",
+  "status": "completed",
   "steps": [
     "Step 1: Update server/package.json - Remove 'better-sqlite3' from dependencies, add 'pg' (node-postgres). Keep all other dependencies (bcryptjs, cors, dotenv, express, express-rate-limit, helmet, jsonwebtoken) unchanged.",
     "Step 2: Update server/.env.example - Replace SQLite-related comments with DATABASE_URL. Contents should be: PORT=3001, JWT_SECRET=your-secure-secret-key-here, CORS_ORIGIN=http://localhost:5173, NODE_ENV=production, DATABASE_URL=postgresql://user:password@host/dbname?sslmode=require",
@@ -32,5 +32,5 @@
     "Run 'cd /projects/sandbox/anotnigeia && npm run build' to confirm the frontend builds successfully with the updated api.ts"
   ],
   "blocked_reason": null,
-  "findings": ""
+  "findings": "Frontend node_modules were not installed initially, causing TypeScript build failures. Running npm install in the root resolved all issues. The frontend build succeeds with the import.meta.env.VITE_API_URL change because vite-env.d.ts references vite/client types. Server syntax check passes. All acceptance criteria verified."
 }
