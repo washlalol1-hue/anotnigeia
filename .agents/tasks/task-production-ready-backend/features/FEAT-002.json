@@ -2,7 +2,7 @@
   "id": "FEAT-002",
   "type": "feat",
   "description": "Harden the Express backend for production: env-based config, security middleware, rate limiting, input validation, health check, graceful shutdown, error handling, and updated .gitignore",
-  "status": "in_progress",
+  "status": "completed",
   "steps": [
     "At the top of /projects/sandbox/anotnigeia/server/index.js, add require('dotenv').config() as the first line before other imports",
     "Replace hardcoded JWT_SECRET with process.env.JWT_SECRET || 'cryptomine-secret-key-2026' (fallback for dev only, log a warning if env var is missing)",
@@ -42,5 +42,5 @@
     "cat /projects/sandbox/anotnigeia/server/Procfile"
   ],
   "blocked_reason": null,
-  "findings": ""
+  "findings": "All changes verified with node --check (syntax OK). All acceptance criteria met: dotenv at top, env-based JWT_SECRET/PORT/CORS_ORIGIN, helmet before cors, rate limiting on /api/ and /api/auth/, phone regex validation, comment trim+max 500, account trim, /health endpoint, global error handler, SIGTERM/SIGINT handlers, .gitignore updated, Procfile created."
 }
