@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
 import { useToast } from '../components/Toast'
 
@@ -12,6 +13,7 @@ function Login() {
 
   const { login, register } = useAuthStore()
   const { showToast } = useToast()
+  const navigate = useNavigate()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -26,6 +28,7 @@ function Login() {
       const result = await register(phone, password, inviteCode || undefined)
       if (result.success) {
         showToast('რეგისტრაცია წარმატებულია!', 'success')
+        navigate('/')
       } else {
         showToast(result.error || 'შეცდომა', 'error')
       }
@@ -33,6 +36,7 @@ function Login() {
       const result = await login(phone, password)
       if (result.success) {
         showToast('წარმატებით შეხვედით!', 'success')
+        navigate('/')
       } else {
         showToast(result.error || 'შეცდომა', 'error')
       }
@@ -150,10 +154,7 @@ function Login() {
           </div>
         </div>
 
-        {/* Demo Notice */}
-        <p className="text-white/40 text-xs text-center mt-4">
-          დემო ვერსია - არანაირი რეალური ტრანზაქცია არ ხორციელდება
-        </p>
+        {/* Footer */}
       </div>
     </div>
   )

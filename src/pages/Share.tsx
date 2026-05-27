@@ -15,7 +15,6 @@ function Share() {
   }, [])
 
   const displayInviteCode = inviteCode || user?.inviteCode || 'N/A'
-  const inviteLink = `https://cryptomine-app.com/register?inviteCode=${displayInviteCode}`
 
   // Calculate team members by level
   const directReferrals = referrals.filter((r) => r.level === 1)
@@ -28,22 +27,6 @@ function Share() {
   // Commission rates
   const commissionRates: Record<number, number> = { 1: 0.25, 2: 0.02, 3: 0.01 }
 
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(inviteLink)
-    } catch {
-      const textArea = document.createElement('textarea')
-      textArea.value = inviteLink
-      document.body.appendChild(textArea)
-      textArea.select()
-      document.execCommand('copy')
-      document.body.removeChild(textArea)
-    }
-    setShowCopyPopup(true)
-    showToast('ბმული დაკოპირებულია!', 'success')
-    setTimeout(() => setShowCopyPopup(false), 2000)
-  }
-
   const handleCopyCode = async () => {
     try {
       await navigator.clipboard.writeText(displayInviteCode)
@@ -51,6 +34,8 @@ function Share() {
     } catch {
       showToast('კოდი: ' + displayInviteCode, 'info')
     }
+    setShowCopyPopup(true)
+    setTimeout(() => setShowCopyPopup(false), 2000)
   }
 
   const levels = [
@@ -115,7 +100,7 @@ function Share() {
           <i className="ri-key-2-line text-purple-brand"></i>
           <p className="text-xs font-bold text-navy">თქვენი მოწვევის კოდი</p>
         </div>
-        <div className="flex items-center gap-2 mb-3">
+        <div className="flex items-center gap-2">
           <div className="flex-1 bg-gradient-to-r from-purple-50 to-violet-50 border-2 border-dashed border-purple-brand/30 rounded-lg px-4 py-3 text-center">
             <span className="text-xl font-bold text-purple-brand tracking-widest">{displayInviteCode}</span>
           </div>
@@ -124,18 +109,6 @@ function Share() {
             className="bg-purple-brand text-white px-4 py-3 rounded-lg text-sm font-medium hover:shadow-lg hover:scale-105 active:scale-95 transition-all"
           >
             <i className="ri-file-copy-line text-lg"></i>
-          </button>
-        </div>
-        {/* Link */}
-        <div className="flex items-center gap-2">
-          <div className="flex-1 bg-gray-100 rounded-lg px-3 py-2.5 text-xs text-gray-600 truncate">
-            {inviteLink}
-          </div>
-          <button
-            onClick={handleCopy}
-            className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 py-2.5 rounded-lg text-sm font-medium hover:shadow-lg hover:scale-105 active:scale-95 transition-all"
-          >
-            <i className="ri-share-line mr-1"></i>ასლი
           </button>
         </div>
       </div>

@@ -18,6 +18,7 @@ function MyProducts() {
     if (result.success) {
       showToast('შემოსავალი დაგერიცხათ!', 'success')
       await loadMyProducts()
+      await loadProfile()
     } else {
       showToast(result.error || 'შეცდომა', 'error')
     }

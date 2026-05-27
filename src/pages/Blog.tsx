@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react'
 import { useBlogStore } from '../stores/blogStore'
 import { useUserStore } from '../stores/userStore'
 import { useToast } from '../components/Toast'
+import { api } from '../services/api'
 
 function Blog() {
   const [previewImage, setPreviewImage] = useState<string | null>(null)
   const [showPostModal, setShowPostModal] = useState(false)
   const [newComment, setNewComment] = useState('')
   const [posting, setPosting] = useState(false)
+  const [stats, setStats] = useState<{ todayWithdrawals: string; totalWithdrawals: string }>({ todayWithdrawals: '0', totalWithdrawals: '0' })
 
   const { posts, loadPosts, createPost } = useBlogStore()
   const { balance, loadProfile } = useUserStore()
@@ -16,6 +18,12 @@ function Blog() {
   useEffect(() => {
     loadPosts()
     loadProfile()
+    api.getStats().then((data) => {
+      setStats({
+        todayWithdrawals: data.todayWithdrawals || '0',
+        totalWithdrawals: data.totalWithdrawals || '0',
+      })
+    }).catch(() => {})
   }, [])
 
   const handlePost = async () => {
@@ -60,12 +68,12 @@ function Blog() {
         <div className="flex justify-around text-center">
           <div>
             <p className="text-[10px] text-gray-400">დღევანდელი გატანები</p>
-            <p className="text-sm font-bold text-green-600">₾12,450</p>
+            <p className="text-sm font-bold text-green-600">₾{stats.todayWithdrawals}</p>
           </div>
           <div className="w-px bg-gray-200"></div>
           <div>
             <p className="text-[10px] text-gray-400">ჯამური გატანილი</p>
-            <p className="text-sm font-bold text-navy">₾2.4M</p>
+            <p className="text-sm font-bold text-navy">₾{stats.totalWithdrawals}</p>
           </div>
           <div className="w-px bg-gray-200"></div>
           <div>

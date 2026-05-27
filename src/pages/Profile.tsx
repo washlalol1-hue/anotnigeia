@@ -50,6 +50,7 @@ function Profile() {
       setAmount('')
       setActiveModal(null)
       loadTransactions()
+      loadProfile()
     } else {
       showToast(result.error || 'შეცდომა', 'error')
     }
@@ -69,6 +70,7 @@ function Profile() {
       setAmount('')
       setActiveModal(null)
       loadTransactions()
+      loadProfile()
     } else {
       showToast(result.error || 'შეცდომა', 'error')
     }
@@ -364,7 +366,6 @@ function Profile() {
               <p className="text-sm text-gray-500 leading-relaxed mb-4">
                 CryptoMine არის კლაუდ მაინინგის პლატფორმა. შეიძინეთ ვირტუალური მაინერები და მიიღეთ ყოველდღიური შემოსავალი.
               </p>
-              <p className="text-xs text-red-400">⚠️ ეს არის დემო ვერსია</p>
             </div>
           </div>
         </div>

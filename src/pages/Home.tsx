@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useUserStore, Product } from '../stores/userStore'
 import { useToast } from '../components/Toast'
@@ -11,7 +11,6 @@ const carouselImages = [
 ]
 
 function Home() {
-  const [showModal, setShowModal] = useState(false)
   const [carouselIndex, setCarouselIndex] = useState(0)
   const [purchaseModal, setPurchaseModal] = useState<Product | null>(null)
   const [purchasing, setPurchasing] = useState(false)
@@ -28,29 +27,21 @@ function Home() {
   }, [])
 
   useEffect(() => {
-    const timer = setTimeout(() => setShowModal(true), 500)
-    return () => clearTimeout(timer)
-  }, [])
-
-  useEffect(() => {
     const interval = setInterval(() => {
       setCarouselIndex((prev) => (prev + 1) % carouselImages.length)
     }, 3000)
     return () => clearInterval(interval)
   }, [])
 
-  const closeModal = useCallback(() => setShowModal(false), [])
-
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        closeModal()
         setPurchaseModal(null)
       }
     }
     document.addEventListener('keydown', handleEsc)
     return () => document.removeEventListener('keydown', handleEsc)
-  }, [closeModal])
+  }, [])
 
   const handlePurchase = async () => {
     if (!purchaseModal) return
@@ -173,37 +164,6 @@ function Home() {
           </div>
         ))}
       </div>
-
-      {/* Welcome Modal */}
-      {showModal && (
-        <div
-          className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4"
-          onClick={closeModal}
-        >
-          <div
-            className="bg-white rounded-2xl p-6 w-full max-w-[360px] relative animate-modal-in"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              onClick={closeModal}
-              className="absolute -top-3 -right-3 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white shadow-lg hover:bg-red-600 active:scale-90 transition-all"
-            >
-              <i className="ri-close-line text-lg"></i>
-            </button>
-            <h2 className="text-xl font-bold text-navy text-center mb-3">შეტყობინება</h2>
-            <p className="text-gray-600 text-sm text-center mb-5 leading-relaxed">
-              ეს არის დემო ვერსია. აპლიკაცია შექმნილია მხოლოდ საპრეზენტაციო მიზნით.
-              არანაირი რეალური ტრანზაქცია არ ხორციელდება.
-            </p>
-            <button
-              onClick={closeModal}
-              className="w-full bg-gradient-to-r from-purple-brand to-cyan-accent text-white py-3 rounded-full font-medium hover:shadow-lg hover:scale-105 active:scale-95 transition-all"
-            >
-              გასაგებია
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Purchase Confirmation Modal */}
       {purchaseModal && (
