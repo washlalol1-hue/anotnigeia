@@ -1,90 +1,69 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { api } from '../services/api'
 
 export interface User {
   id: string
   phone: string
-  password: string
   inviteCode: string
-  referredBy: string | null
-  createdAt: string
+  balance: number
 }
 
 interface AuthState {
   user: User | null
   isAuthenticated: boolean
   token: string | null
-  users: User[] // simulated DB of all registered users
-  login: (phone: string, password: string) => { success: boolean; error?: string }
-  register: (phone: string, password: string, inviteCode?: string) => { success: boolean; error?: string }
+  login: (phone: string, password: string) => Promise<{ success: boolean; error?: string }>
+  register: (phone: string, password: string, inviteCode?: string) => Promise<{ success: boolean; error?: string }>
   logout: () => void
   setToken: (token: string) => void
 }
 
-function generateId(): string {
-  return Math.random().toString(36).substring(2) + Date.now().toString(36)
-}
-
-function generateInviteCode(): string {
-  return 'PRN' + Math.random().toString(36).substring(2, 8).toUpperCase()
-}
-
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       user: null,
       isAuthenticated: false,
       token: null,
-      users: [],
 
-      login: (phone, password) => {
-        const { users } = get()
-        const user = users.find((u) => u.phone === phone && u.password === password)
-        if (!user) {
-          return { success: false, error: 'არასწორი ნომერი ან პაროლი' }
+      login: async (phone, password) => {
+        try {
+          const data = await api.login(phone, password)
+          set({
+            user: {
+              id: data.user.id,
+              phone: data.user.phone,
+              inviteCode: data.user.inviteCode,
+              balance: data.user.balance,
+            },
+            token: data.token,
+            isAuthenticated: true,
+          })
+          return { success: true }
+        } catch (err: unknown) {
+          const message = err instanceof Error ? err.message : 'შეცდომა'
+          return { success: false, error: message }
         }
-        set({ user, isAuthenticated: true })
-        return { success: true }
       },
 
-      register: (phone, password, referralCode?) => {
-        const { users } = get()
-        if (users.find((u) => u.phone === phone)) {
-          return { success: false, error: 'ეს ნომერი უკვე რეგისტრირებულია' }
+      register: async (phone, password, inviteCode?) => {
+        try {
+          const data = await api.register(phone, password, inviteCode)
+          set({
+            user: {
+              id: data.user.id,
+              phone: data.user.phone,
+              inviteCode: data.user.inviteCode,
+              balance: data.user.balance,
+            },
+            token: data.token,
+            isAuthenticated: true,
+          })
+          return { success: true }
+        } catch (err: unknown) {
+          const message = err instanceof Error ? err.message : 'შეცდომა'
+          return { success: false, error: message }
         }
-        if (phone.length < 9) {
-          return { success: false, error: 'ტელეფონის ნომერი არასწორია' }
-        }
-        if (password.length < 6) {
-          return { success: false, error: 'პაროლი უნდა იყოს მინიმუმ 6 სიმბოლო' }
-        }
-
-        let referredBy: string | null = null
-        if (referralCode) {
-          const referrer = users.find((u) => u.inviteCode === referralCode)
-          if (referrer) {
-            referredBy = referrer.id
-          } else {
-            return { success: false, error: 'მოწვევის კოდი არასწორია' }
-          }
-        }
-
-        const newUser: User = {
-          id: generateId(),
-          phone,
-          password,
-          inviteCode: generateInviteCode(),
-          referredBy,
-          createdAt: new Date().toISOString(),
-        }
-
-        set((state) => ({
-          users: [...state.users, newUser],
-          user: newUser,
-          isAuthenticated: true,
-        }))
-
-        return { success: true }
       },
 
       logout: () => {

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
 import { useUserStore, Transaction } from '../stores/userStore'
@@ -24,9 +24,18 @@ function Profile() {
     deposit,
     withdraw,
     setWithdrawalAccount,
+    loadProfile,
+    loadTransactions,
+    loadMyProducts,
   } = useUserStore()
   const { showToast } = useToast()
   const navigate = useNavigate()
+
+  useEffect(() => {
+    loadProfile()
+    loadTransactions()
+    loadMyProducts()
+  }, [])
 
   const handleDeposit = async () => {
     const val = parseFloat(amount)
@@ -35,12 +44,16 @@ function Profile() {
       return
     }
     setProcessing(true)
-    await new Promise((r) => setTimeout(r, 1500))
-    deposit(val)
-    showToast(`₾${val} წარმატებით შეივსო!`, 'success')
-    setAmount('')
+    const result = await deposit(val)
+    if (result.success) {
+      showToast(`₾${val} წარმატებით შეივსო!`, 'success')
+      setAmount('')
+      setActiveModal(null)
+      loadTransactions()
+    } else {
+      showToast(result.error || 'შეცდომა', 'error')
+    }
     setProcessing(false)
-    setActiveModal(null)
   }
 
   const handleWithdraw = async () => {
@@ -50,26 +63,30 @@ function Profile() {
       return
     }
     setProcessing(true)
-    await new Promise((r) => setTimeout(r, 2000))
-    const result = withdraw(val)
+    const result = await withdraw(val)
     if (result.success) {
       showToast(`₾${val} გატანა მუშავდება (5-30 წუთი)`, 'success')
       setAmount('')
       setActiveModal(null)
+      loadTransactions()
     } else {
       showToast(result.error || 'შეცდომა', 'error')
     }
     setProcessing(false)
   }
 
-  const handleSetAccount = () => {
+  const handleSetAccount = async () => {
     if (accountInput.length < 5) {
       showToast('გთხოვთ შეიყვანოთ ვალიდური ანგარიში', 'error')
       return
     }
-    setWithdrawalAccount(accountInput)
-    showToast('ანგარიში შენახულია', 'success')
-    setActiveModal(null)
+    const result = await setWithdrawalAccount(accountInput)
+    if (result.success) {
+      showToast('ანგარიში შენახულია', 'success')
+      setActiveModal(null)
+    } else {
+      showToast(result.error || 'შეცდომა', 'error')
+    }
   }
 
   const handleLogout = () => {
@@ -297,7 +314,7 @@ function Profile() {
                     <div className="flex-1 min-w-0">
                       <p className="text-xs text-navy truncate">{tx.description}</p>
                       <p className="text-[10px] text-gray-400">
-                        {new Date(tx.createdAt).toLocaleString('ka-GE')}
+                        {new Date(tx.created_at).toLocaleString('ka-GE')}
                       </p>
                     </div>
                     <div className="text-right">

@@ -1,6 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useBlogStore } from '../stores/blogStore'
-import { useAuthStore } from '../stores/authStore'
 import { useUserStore } from '../stores/userStore'
 import { useToast } from '../components/Toast'
 
@@ -10,10 +9,14 @@ function Blog() {
   const [newComment, setNewComment] = useState('')
   const [posting, setPosting] = useState(false)
 
-  const { posts, addPost } = useBlogStore()
-  const { user } = useAuthStore()
-  const { balance } = useUserStore()
+  const { posts, loadPosts, createPost } = useBlogStore()
+  const { balance, loadProfile } = useUserStore()
   const { showToast } = useToast()
+
+  useEffect(() => {
+    loadPosts()
+    loadProfile()
+  }, [])
 
   const handlePost = async () => {
     if (!newComment.trim()) {
@@ -21,19 +24,16 @@ function Blog() {
       return
     }
     setPosting(true)
-    await new Promise((r) => setTimeout(r, 1000))
 
-    const maskedPhone = user
-      ? `${user.phone.substring(0, 2)}*****${user.phone.substring(user.phone.length - 2)}`
-      : 'Anonymous'
-    const reward = parseFloat((Math.random() * 0.5 + 0.2).toFixed(2))
-
-    addPost(newComment, reward, maskedPhone)
-    // Add blog reward to user balance
-    useUserStore.getState().deposit(reward)
-    showToast(`პოსტი გამოქვეყნდა! ჯილდო: ₾${reward}`, 'success')
-    setNewComment('')
-    setShowPostModal(false)
+    const result = await createPost(newComment)
+    if (result.success) {
+      showToast(`პოსტი გამოქვეყნდა! ჯილდო: ₾${result.reward?.toFixed(2) || '0.00'}`, 'success')
+      setNewComment('')
+      setShowPostModal(false)
+      loadProfile()
+    } else {
+      showToast(result.error || 'შეცდომა', 'error')
+    }
     setPosting(false)
   }
 
@@ -100,7 +100,7 @@ function Blog() {
         <div className="bg-gray-800 border border-gray-700 rounded-xl p-4">
           <div className="flex items-center gap-2 mb-3">
             <i className="ri-trophy-line text-yellow-400"></i>
-            <p className="text-white font-bold text-sm">ტოპ რეფერერები — თვის გამარჯვებულები</p>
+            <p className="text-white font-bold text-sm">ტოპ რეფერერები -- თვის გამარჯვებულები</p>
           </div>
           <div className="space-y-2.5">
             {/* 1st place */}
@@ -165,14 +165,14 @@ function Blog() {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-navy">{post.username}</p>
-                  <p className="text-[10px] text-gray-400">{post.timestamp}</p>
+                  <p className="text-[10px] text-gray-400">{post.created_at}</p>
                 </div>
               </div>
               {/* Withdrawal badge */}
-              {'withdrawAmount' in post && post.withdrawAmount && (
+              {post.withdraw_amount && (
                 <div className="bg-green-50 border border-green-200 rounded-lg px-2 py-1">
                   <p className="text-[10px] text-green-600 font-medium">გატანილია</p>
-                  <p className="text-sm font-bold text-green-700">₾{post.withdrawAmount.toLocaleString()}</p>
+                  <p className="text-sm font-bold text-green-700">₾{post.withdraw_amount.toLocaleString()}</p>
                 </div>
               )}
             </div>
@@ -204,7 +204,7 @@ function Blog() {
                 <i className="ri-gift-line text-purple-brand"></i>
                 <span className="text-xs text-gray-500">ჯილდო: ₾{post.reward}</span>
               </div>
-              {'method' in post && post.method && (
+              {post.method && (
                 <span className="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full">
                   {post.method}
                 </span>
@@ -246,7 +246,7 @@ function Blog() {
               გატანის გაზიარება
             </h3>
             <p className="text-xs text-gray-400 text-center mb-4">
-              გააზიარეთ თქვენი წარმატებული გატანა და მიიღეთ ₾0.20 – ₾0.70 ჯილდო
+              გააზიარეთ თქვენი წარმატებული გატანა და მიიღეთ ₾0.20 - ₾0.70 ჯილდო
             </p>
 
             <textarea

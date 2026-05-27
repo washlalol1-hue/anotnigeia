@@ -3,22 +3,24 @@ import { useUserStore } from '../stores/userStore'
 import { useToast } from '../components/Toast'
 
 function MyProducts() {
-  const { purchasedProducts, balance, collectEarnings, getTotalDailyIncome } = useUserStore()
+  const { purchasedProducts, balance, collectEarnings, getTotalDailyIncome, loadMyProducts, loadProfile } = useUserStore()
   const { showToast } = useToast()
   const [collecting, setCollecting] = useState(false)
-  const [, setTick] = useState(0)
 
-  // Update earnings display every 10 seconds
   useEffect(() => {
-    const interval = setInterval(() => setTick((t) => t + 1), 10000)
-    return () => clearInterval(interval)
+    loadMyProducts()
+    loadProfile()
   }, [])
 
   const handleCollect = async () => {
     setCollecting(true)
-    await new Promise((r) => setTimeout(r, 800))
-    collectEarnings()
-    showToast('შემოსავალი დაგერიცხათ!', 'success')
+    const result = await collectEarnings()
+    if (result.success) {
+      showToast('შემოსავალი დაგერიცხათ!', 'success')
+      await loadMyProducts()
+    } else {
+      showToast(result.error || 'შეცდომა', 'error')
+    }
     setCollecting(false)
   }
 
@@ -27,7 +29,7 @@ function MyProducts() {
   const dailyIncome = getTotalDailyIncome()
 
   const getProgress = (pp: typeof purchasedProducts[0]) => {
-    return Math.min((pp.totalEarned / pp.product.totalIncome) * 100, 100)
+    return Math.min((pp.total_earned / pp.total_income) * 100, 100)
   }
 
   const getElapsedTime = (purchasedAt: string) => {
@@ -113,13 +115,13 @@ function MyProducts() {
                         <i className="ri-cpu-line text-white text-xl"></i>
                       </div>
                       <div className="flex-1">
-                        <h3 className="font-bold text-navy">{pp.product.name}</h3>
+                        <h3 className="font-bold text-navy">{pp.name}</h3>
                         <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
                           აქტიური
                         </span>
                       </div>
                       <div className="text-right">
-                        <p className="text-xs text-gray-400">{getElapsedTime(pp.purchasedAt)}</p>
+                        <p className="text-xs text-gray-400">{getElapsedTime(pp.purchased_at)}</p>
                       </div>
                     </div>
 
@@ -140,19 +142,19 @@ function MyProducts() {
                     <div className="grid grid-cols-2 gap-2">
                       <div className="bg-white rounded-lg p-2 text-center">
                         <p className="text-[10px] text-gray-500">დღიური შემოსავალი</p>
-                        <p className="text-sm font-bold text-green-600">₾{pp.product.dailyIncome}</p>
+                        <p className="text-sm font-bold text-green-600">₾{pp.daily_income}</p>
                       </div>
                       <div className="bg-white rounded-lg p-2 text-center">
                         <p className="text-[10px] text-gray-500">მიღებული</p>
-                        <p className="text-sm font-bold text-navy">₾{pp.totalEarned.toFixed(2)}</p>
+                        <p className="text-sm font-bold text-navy">₾{pp.total_earned.toFixed(2)}</p>
                       </div>
                       <div className="bg-white rounded-lg p-2 text-center">
                         <p className="text-[10px] text-gray-500">ინვესტიცია</p>
-                        <p className="text-sm font-bold text-navy">₾{pp.product.price}</p>
+                        <p className="text-sm font-bold text-navy">₾{pp.price}</p>
                       </div>
                       <div className="bg-white rounded-lg p-2 text-center">
                         <p className="text-[10px] text-gray-500">ჯამური მოგება</p>
-                        <p className="text-sm font-bold text-navy">₾{pp.product.totalIncome}</p>
+                        <p className="text-sm font-bold text-navy">₾{pp.total_income}</p>
                       </div>
                     </div>
                   </div>
@@ -169,14 +171,14 @@ function MyProducts() {
                         <i className="ri-cpu-line text-white text-lg"></i>
                       </div>
                       <div>
-                        <h3 className="font-bold text-gray-500">{pp.product.name}</h3>
+                        <h3 className="font-bold text-gray-500">{pp.name}</h3>
                         <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full">
                           დასრულებული
                         </span>
                       </div>
                     </div>
                     <p className="text-xs text-gray-400">
-                      მიღებული: ₾{pp.totalEarned.toFixed(2)} / ₾{pp.product.totalIncome}
+                      მიღებული: ₾{pp.total_earned.toFixed(2)} / ₾{pp.total_income}
                     </p>
                   </div>
                 ))}

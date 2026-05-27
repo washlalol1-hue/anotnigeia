@@ -1,31 +1,32 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuthStore } from '../stores/authStore'
 import { useUserStore } from '../stores/userStore'
 import { useToast } from '../components/Toast'
 
 function Share() {
   const [showCopyPopup, setShowCopyPopup] = useState(false)
-  const { user, users } = useAuthStore()
-  const { referrals, balance } = useUserStore()
+  const { user } = useAuthStore()
+  const { referrals, balance, inviteCode, loadReferrals, loadProfile } = useUserStore()
   const { showToast } = useToast()
 
-  const inviteCode = user?.inviteCode || 'N/A'
-  const inviteLink = `https://cryptomine-app.com/register?inviteCode=${inviteCode}`
+  useEffect(() => {
+    loadReferrals()
+    loadProfile()
+  }, [])
 
-  // Calculate real team members
-  const directReferrals = users.filter((u) => u.referredBy === user?.id)
-  const level2Referrals = users.filter((u) =>
-    directReferrals.some((dr) => dr.id === u.referredBy)
-  )
-  const level3Referrals = users.filter((u) =>
-    level2Referrals.some((lr) => lr.id === u.referredBy)
-  )
+  const displayInviteCode = inviteCode || user?.inviteCode || 'N/A'
+  const inviteLink = `https://cryptomine-app.com/register?inviteCode=${displayInviteCode}`
 
-  const totalTeam = directReferrals.length + level2Referrals.length + level3Referrals.length
-  const totalRewards = referrals.reduce((sum, r) => sum + r.totalEarnings, 0)
+  // Calculate team members by level
+  const directReferrals = referrals.filter((r) => r.level === 1)
+  const level2Referrals = referrals.filter((r) => r.level === 2)
+  const level3Referrals = referrals.filter((r) => r.level === 3)
+
+  const totalTeam = referrals.length
+  const totalRewards = referrals.reduce((sum, r) => sum + r.total_earnings, 0)
 
   // Commission rates
-  const commissionRates = { 1: 0.25, 2: 0.02, 3: 0.01 }
+  const commissionRates: Record<number, number> = { 1: 0.25, 2: 0.02, 3: 0.01 }
 
   const handleCopy = async () => {
     try {
@@ -45,17 +46,17 @@ function Share() {
 
   const handleCopyCode = async () => {
     try {
-      await navigator.clipboard.writeText(inviteCode)
-      showToast('კოდი დაკოპირებულია: ' + inviteCode, 'success')
+      await navigator.clipboard.writeText(displayInviteCode)
+      showToast('კოდი დაკოპირებულია: ' + displayInviteCode, 'success')
     } catch {
-      showToast('კოდი: ' + inviteCode, 'info')
+      showToast('კოდი: ' + displayInviteCode, 'info')
     }
   }
 
   const levels = [
     {
       level: 1,
-      name: 'დონე 1 — პირდაპირი',
+      name: 'დონე 1 -- პირდაპირი',
       percent: '25%',
       people: directReferrals.length,
       description: 'მოწვეულის შემოსავლის 25%',
@@ -84,7 +85,7 @@ function Share() {
       {/* Header */}
       <div className="text-center mb-4">
         <h1 className="text-white text-xl font-bold">რეფერალ სისტემა</h1>
-        <p className="text-white/60 text-xs mt-1">მოიწვიე მეგობრები — მიიღე 25% კომისია</p>
+        <p className="text-white/60 text-xs mt-1">მოიწვიე მეგობრები -- მიიღე 25% კომისია</p>
       </div>
 
       {/* Big Stats */}
@@ -116,7 +117,7 @@ function Share() {
         </div>
         <div className="flex items-center gap-2 mb-3">
           <div className="flex-1 bg-gradient-to-r from-purple-50 to-violet-50 border-2 border-dashed border-purple-brand/30 rounded-lg px-4 py-3 text-center">
-            <span className="text-xl font-bold text-purple-brand tracking-widest">{inviteCode}</span>
+            <span className="text-xl font-bold text-purple-brand tracking-widest">{displayInviteCode}</span>
           </div>
           <button
             onClick={handleCopyCode}

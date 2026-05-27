@@ -1,37 +1,49 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
-import { blogPosts, BlogPost } from '../data/blogPosts'
+import { api } from '../services/api'
+
+export interface BlogPost {
+  id: number
+  username: string
+  comment: string
+  reward: number
+  image: string
+  withdraw_amount?: number
+  method?: string
+  created_at: string
+}
 
 interface BlogState {
   posts: BlogPost[]
-  addPost: (comment: string, reward: number, username: string) => void
+  loading: boolean
+  loadPosts: () => Promise<void>
+  createPost: (comment: string) => Promise<{ success: boolean; reward?: number; error?: string }>
 }
 
-function generateId(): number {
-  return Date.now() + Math.floor(Math.random() * 1000)
-}
+export const useBlogStore = create<BlogState>()((set) => ({
+  posts: [],
+  loading: false,
 
-export const useBlogStore = create<BlogState>()(
-  persist(
-    (set) => ({
-      posts: blogPosts,
-
-      addPost: (comment, reward, username) => {
-        const newPost: BlogPost = {
-          id: generateId(),
-          username,
-          timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
-          comment,
-          reward,
-          image: `https://images.unsplash.com/photo-1639762681057-408e52192e55?w=400&h=200&fit=crop&t=${Date.now()}`,
-        }
-        set((state) => ({
-          posts: [newPost, ...state.posts],
-        }))
-      },
-    }),
-    {
-      name: 'princess-blog',
+  loadPosts: async () => {
+    try {
+      set({ loading: true })
+      const data = await api.getBlogPosts()
+      set({ posts: data, loading: false })
+    } catch (err) {
+      console.error('Failed to load blog posts:', err)
+      set({ loading: false })
     }
-  )
-)
+  },
+
+  createPost: async (comment) => {
+    try {
+      const data = await api.createBlogPost(comment)
+      // Reload posts to get the new one from the server
+      const posts = await api.getBlogPosts()
+      set({ posts })
+      return { success: true, reward: data.reward }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'შეცდომა'
+      return { success: false, error: message }
+    }
+  },
+}))

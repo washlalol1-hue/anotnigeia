@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { useAuthStore } from '../stores/authStore'
-import { useUserStore } from '../stores/userStore'
 import { useToast } from '../components/Toast'
 
 function Login() {
@@ -18,31 +17,20 @@ function Login() {
     e.preventDefault()
     setLoading(true)
 
-    // Simulate network delay
-    await new Promise((r) => setTimeout(r, 800))
-
     if (isRegister) {
       if (password !== confirmPassword) {
         showToast('პაროლები არ ემთხვევა', 'error')
         setLoading(false)
         return
       }
-      const result = register(phone, password, inviteCode || undefined)
+      const result = await register(phone, password, inviteCode || undefined)
       if (result.success) {
-        // If registered with a referral code, add them as referral
-        if (inviteCode) {
-          const authState = useAuthStore.getState()
-          const newUser = authState.user
-          if (newUser && newUser.referredBy) {
-            useUserStore.getState().addReferral(phone, newUser.id, 1)
-          }
-        }
         showToast('რეგისტრაცია წარმატებულია!', 'success')
       } else {
         showToast(result.error || 'შეცდომა', 'error')
       }
     } else {
-      const result = login(phone, password)
+      const result = await login(phone, password)
       if (result.success) {
         showToast('წარმატებით შეხვედით!', 'success')
       } else {
