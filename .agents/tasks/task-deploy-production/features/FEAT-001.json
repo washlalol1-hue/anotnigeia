@@ -1,0 +1,35 @@
+{
+  "id": "FEAT-001",
+  "type": "feat",
+  "description": "Migrate backend from SQLite (better-sqlite3) to PostgreSQL (pg) and add deployment configuration for Render backend and Vercel frontend",
+  "status": "in_progress",
+  "steps": [
+    "Step 1: Update server/package.json - replace 'better-sqlite3' dependency with 'pg' (^8.13.0). Keep all other dependencies unchanged.",
+    "Step 2: Rewrite server/index.js to use pg.Pool instead of better-sqlite3. Key changes: (a) Replace `const Database = require('better-sqlite3')` with `const { Pool } = require('pg')`. (b) Create pool: `const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } })`. (c) Add an async initDb() function that runs CREATE TABLE IF NOT EXISTS statements using pool.query(). Convert SQLite types: TEXT PRIMARY KEY stays, datetime('now') becomes NOW(), REAL becomes DOUBLE PRECISION, INTEGER PRIMARY KEY AUTOINCREMENT becomes SERIAL PRIMARY KEY. Use $1,$2 parameterized queries instead of ?. (d) Convert all route handlers to async (req, res) => { try {...} catch(err) { ... } }. Replace db.prepare().get() with pool.query() returning rows[0]. Replace db.prepare().all() with pool.query() returning rows. Replace db.prepare().run() with pool.query(). (e) For the seed logic, use pool.query to check counts and insert. Replace db.transaction() with a single multi-statement approach or sequential awaits. (f) For the /api/collect-earnings route, replace the SQLite transaction with a PostgreSQL transaction using client = await pool.connect(), client.query('BEGIN'), ..., client.query('COMMIT'), client.release(). (g) Update graceful shutdown to call pool.end() instead of db.close(). (h) Call initDb() before app.listen() - wrap startup in an async main function. (i) In the /api/stats route, convert date('now') to CURRENT_DATE and date(created_at) to created_at::date.",
+    "Step 3: Update server/.env.example - add DATABASE_URL=postgresql://user:password@host/dbname?sslmode=require line. Keep existing vars (PORT, JWT_SECRET, CORS_ORIGIN, NODE_ENV).",
+    "Step 4: Update src/services/api.ts - change BASE_URL from '/api' to use an environment variable: `const BASE_URL = import.meta.env.VITE_API_URL || '/api'`. This allows the frontend to point to the Render backend URL in production while still using the Vite proxy in development.",
+    "Step 5: Add vercel.json in the project root for Vercel frontend deployment: { \"buildCommand\": \"npm run build\", \"outputDirectory\": \"dist\", \"framework\": \"vite\", \"rewrites\": [{ \"source\": \"/(.*)\", \"destination\": \"/index.html\" }] }. The rewrites handle client-side routing.",
+    "Step 6: Add render.yaml in the server/ directory for Render backend deployment: a blueprint that defines a web service using Node, build command 'npm install', start command 'node index.js', with envVars for DATABASE_URL, JWT_SECRET, CORS_ORIGIN, NODE_ENV.",
+    "Step 7: Update .gitignore - add .env to root-level ignores (server/.env is already ignored; also add root .env just in case). Ensure node_modules coverage is adequate.",
+    "Step 8: Run 'cd /projects/sandbox/anotnigeia/server && npm install' to install the pg package and update package-lock.json.",
+    "Step 9: Run 'cd /projects/sandbox/anotnigeia && npm run build' to verify the frontend builds successfully with the updated api.ts."
+  ],
+  "acceptance_criteria": [
+    "server/index.js uses pg.Pool with process.env.DATABASE_URL and all SQL is valid PostgreSQL syntax",
+    "server/package.json has 'pg' dependency and no longer has 'better-sqlite3'",
+    "All route handlers are async/await and use pool.query() with parameterized queries ($1, $2, etc.)",
+    "src/services/api.ts uses import.meta.env.VITE_API_URL as configurable base URL",
+    "vercel.json exists at project root with proper Vite/SPA configuration",
+    "render.yaml exists in server/ with Render blueprint configuration",
+    "server/.env.example includes DATABASE_URL",
+    "Frontend builds successfully with 'npm run build'",
+    "Server starts without syntax errors (verified by node --check server/index.js)"
+  ],
+  "verification": [
+    "Run 'cd /projects/sandbox/anotnigeia/server && node --check index.js' to verify no syntax errors",
+    "Run 'cd /projects/sandbox/anotnigeia && npm run build' to verify frontend compiles",
+    "Run 'cd /projects/sandbox/anotnigeia/server && node -e \"require('./index.js')\"' with DATABASE_URL set to verify module loads (may fail on DB connect but should not have require/syntax errors)"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

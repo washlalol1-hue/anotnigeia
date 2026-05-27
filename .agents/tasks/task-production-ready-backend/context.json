@@ -1,0 +1,20 @@
+{
+  "project_type": "Express.js backend API with SQLite (better-sqlite3) for a crypto mining app",
+  "language": "JavaScript (CommonJS)",
+  "build_system": "npm with simple node start script",
+  "test_framework": "None - no test infrastructure exists",
+  "build_command": "cd /projects/sandbox/anotnigeia/server && npm install",
+  "test_command": "cd /projects/sandbox/anotnigeia/server && node -e \"require('./index.js')\" (basic syntax check - no tests exist)",
+  "verification_instructions": "1. Run npm install in server/ to verify dependencies resolve. 2. Check that index.js can be parsed without syntax errors via node --check index.js. 3. Verify .env.example exists with all required vars documented.",
+  "snapshot_or_generated_files": null,
+  "setup_instructions": "cd /projects/sandbox/anotnigeia/server && npm install",
+  "environment_constraints": "SQLite DB file is local. No Docker daemon available. Validation via node --check and npm install.",
+  "contribution_requirements": "No CONTRIBUTING.md exists. Follow existing code style (CommonJS, no semicolons in some places but generally uses them).",
+  "key_patterns": "Single-file Express app with inline route handlers. Uses better-sqlite3 synchronous API. JWT for auth with Bearer token pattern. bcryptjs for password hashing. All routes prefixed with /api/.",
+  "relevant_files": [
+    "/projects/sandbox/anotnigeia/server/index.js",
+    "/projects/sandbox/anotnigeia/server/package.json",
+    "/projects/sandbox/anotnigeia/.gitignore"
+  ],
+  "directory_structure": "Root is a Vite React frontend. /server/ contains the Express backend as a separate package with its own package.json."
+}

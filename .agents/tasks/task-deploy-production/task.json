@@ -1,0 +1,7 @@
+{
+  "task_id": "task-deploy-production",
+  "task_description": "Migrate backend from SQLite to PostgreSQL (Neon), update frontend API layer to use configurable base URL, and add deployment configurations for Render (backend) and Vercel (frontend)",
+  "status": "in_progress",
+  "feature_order": ["FEAT-001"],
+  "blocked_reason": null
+}
